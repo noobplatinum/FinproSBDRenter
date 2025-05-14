@@ -1,4 +1,4 @@
-const db = require('../db');
+const db = require('../database/db');
 
 const ratingRepository = {
   async create(ratingData) {

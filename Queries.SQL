@@ -1,5 +1,4 @@
-1. Account
-
+-- Account
 CREATE TABLE account (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
@@ -14,8 +13,7 @@ CREATE TABLE account (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-2. Property
-
+-- Property
 CREATE TABLE property (
     id SERIAL PRIMARY KEY,
     title TEXT NOT NULL,
@@ -30,8 +28,7 @@ CREATE TABLE property (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-3. Facilities
-
+-- Facilities
 CREATE TABLE facilities (
     id SERIAL PRIMARY KEY,
     property_id INTEGER REFERENCES property(id) ON DELETE CASCADE,
@@ -39,8 +36,7 @@ CREATE TABLE facilities (
     condition TEXT CHECK (condition IN ('berfungsi', 'rusak', 'maintenance')) NOT NULL
 );
 
-4. Transaction (gabungan transaksi + pembayaran)
-
+-- Transaction (gabungan transaksi + pembayaran)
 CREATE TABLE transaction (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES account(id) ON DELETE CASCADE,
@@ -54,7 +50,7 @@ CREATE TABLE transaction (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-5. Ratings / Reviews
+-- Ratings / Reviews
 
 CREATE TABLE rating (
     id SERIAL PRIMARY KEY,
@@ -66,8 +62,7 @@ CREATE TABLE rating (
     UNIQUE (user_id, property_id) 
 );
 
-6. Images
-
+-- Images
 CREATE TABLE image (
     id SERIAL PRIMARY KEY,
     property_id INTEGER REFERENCES property(id) ON DELETE CASCADE,
