@@ -2,10 +2,9 @@ import { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiUser, FiMail, FiLock, FiPhone, FiMapPin, FiEye, FiEyeOff, FiArrowRight } from 'react-icons/fi';
 import { toast } from 'react-hot-toast';
-import { AuthContext } from '../context/AuthContext';
+import { AuthContext } from '../../context/AuthContext';
 import { motion } from 'framer-motion';
-// Import logo RenterIn
-import RenterInLogo from '../assets/RenterIn-logo.png';
+import RenterInLogo from '../../assets/RenterIn-logo.png';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -35,7 +34,6 @@ const Register = () => {
     e.preventDefault();
     const { name, email, password, confirmPassword, phone, location } = formData;
     
-    // Validasi form dasar
     if (!name || !email || !password || !confirmPassword || !phone || !location) {
       toast.error('Semua field harus diisi');
       return;
@@ -71,7 +69,6 @@ const Register = () => {
       
       // Animasi sukses
       toast.success('Registrasi berhasil!', {
-        icon: '🎉',
         style: {
           borderRadius: '10px',
           background: '#22c55e',
@@ -79,12 +76,10 @@ const Register = () => {
         },
       });
       
-      // Sedikit delay untuk UX yang lebih baik
       setTimeout(() => navigate('/login'), 800);
     } catch (error) {
       console.error('Registration error:', error);
       toast.error(error.response?.data?.message || 'Registrasi gagal, silakan coba lagi', {
-        icon: '❌',
         style: {
           borderRadius: '10px',
           background: '#ef4444',

@@ -9,13 +9,13 @@ import { AuthProvider } from './context/AuthContext';
 // Pages
 import Home from './pages/Home';
 import Login from './pages/Login';
-import Register from './pages/Register';
+import Register from './pages/Register/Register';
 import About from './pages/About'; 
 import Booking from './pages/Booking';
 import BookingSuccess from './pages/BookingSuccess';
 import MyBookings from './pages/MyBookings';
 import Profile from './pages/Profile';
-import Unauthorized from './pages/Unauthorized';
+import Unauthorized from './components/Error/GlobalError';
 import Properties from './pages/Properties';
 import PropertyDetail from './pages/PropertyDetail'; // Import komponen PropertyDetail baru
 
@@ -32,7 +32,7 @@ import MainLayout from './components/layout/MainLayout';
 import ProtectedRoute from './components/routing/ProtectedRoute';
 import AdminRoute from './components/routing/AdminRoute';
 import AdminLayout from './components/layout/AdminLayout';
-import NotFound from './pages/NotFound';
+import NotFound from './components/Error/GlobalError';
 
 function App() {
   return (
