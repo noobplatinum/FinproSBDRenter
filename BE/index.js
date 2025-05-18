@@ -2,17 +2,14 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const router = require('./routes/router'); 
-const db = require('./database/db'); 
+const db = require('./database/pg.database');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-
-db.pool.connect()
-  .then(() => console.log('Connected to NeonDB'))
-  .catch(err => console.error('Error connecting to NeonDB:', err));
 
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to RenterIn API' });

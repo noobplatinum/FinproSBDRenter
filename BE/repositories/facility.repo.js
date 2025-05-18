@@ -1,4 +1,4 @@
-const db = require('../database/db');
+const db = require('../database/pg.database');
 
 const facilitiesRepository = {
   async create(facilityData) {
