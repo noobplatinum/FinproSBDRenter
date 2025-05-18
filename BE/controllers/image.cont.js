@@ -4,6 +4,10 @@ const cloudinary = require('../utils/cloudinary.util');
 const imageController = {
     async upload(req, res) {
         try {
+            console.log("Incoming fields:");
+console.log("file:", req.file);
+console.log("body:", req.body);
+
             if (!req.file) {
                 return res.status(400).json({
                     success: false,

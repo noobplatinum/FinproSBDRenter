@@ -28,6 +28,9 @@ CREATE TABLE property (
     category TEXT,  
     owner_id UUID REFERENCES account(id) ON DELETE SET NULL,
     is_available BOOLEAN DEFAULT TRUE,
+    bedrooms INTEGER NOT NULL DEFAULT 0,
+    bathrooms INTEGER NOT NULL DEFAULT 0,
+    max_guests INTEGER NOT NULL DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -68,7 +71,9 @@ CREATE TABLE rating (
 CREATE TABLE image (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     property_id UUID REFERENCES property(id) ON DELETE CASCADE,
+    public_id TEXT,
     url TEXT NOT NULL,
     description TEXT,
     is_thumbnail BOOLEAN DEFAULT FALSE
 );
+
