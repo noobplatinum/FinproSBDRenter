@@ -14,7 +14,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [activeField, setActiveField] = useState(null);
   const [animationComplete, setAnimationComplete] = useState(false);
-  
+
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
@@ -40,17 +40,16 @@ const Login = () => {
 
     try {
       await login(email, password);
-      
+
       // Animate success before navigation
       toast.success('Login berhasil!', {
-        icon: '🎉',
         style: {
           borderRadius: '10px',
           background: '#22c55e',
           color: '#fff',
         },
       });
-      
+
       // Slight delay for better UX
       setTimeout(() => navigate(from, { replace: true }), 800);
     } catch (error) {
@@ -78,33 +77,33 @@ const Login = () => {
       </div>
 
       {/* Left: Image with overlay content */}
-      <motion.div 
+      <motion.div
         initial={{ x: -200, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
         className="hidden lg:flex lg:w-1/2 relative overflow-hidden"
       >
-        <div className="absolute inset-0 bg-cover bg-center" 
+        <div className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url('https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80')` }}>
           <div className="absolute inset-0 bg-gradient-to-b from-blue-900/80 to-indigo-900/90"></div>
         </div>
-        
+
         {/* Content overlay on the image */}
         <div className="absolute inset-0 flex flex-col justify-center px-12 text-white z-10">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.8 }}
             className="mb-8 flex items-center"
           >
-            <img 
-              src={RenterInLogo} 
-              alt="RenterIn Logo" 
-              className="h-24 w-auto object-contain mr-4" 
+            <img
+              src={RenterInLogo}
+              alt="RenterIn Logo"
+              className="h-24 w-auto object-contain mr-4"
             />
           </motion.div>
 
-          <motion.h1 
+          <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7, duration: 0.8 }}
@@ -113,7 +112,7 @@ const Login = () => {
             RenterIn
           </motion.h1>
 
-          <motion.h2 
+          <motion.h2
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.9, duration: 0.8 }}
@@ -122,17 +121,17 @@ const Login = () => {
             Temukan Hunian Impian Anda
           </motion.h2>
 
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.1, duration: 0.8 }}
             className="text-lg text-gray-100 mb-10"
           >
-            Akses ke ribuan properti berkualitas untuk disewa di seluruh Indonesia. 
+            Akses ke ribuan properti berkualitas untuk disewa di seluruh Indonesia.
             Pengalaman menyewa yang aman, cepat, dan nyaman.
           </motion.p>
-          
-          <motion.div 
+
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.3, duration: 0.8 }}
@@ -165,9 +164,9 @@ const Login = () => {
           </motion.div>
         </div>
       </motion.div>
-      
+
       {/* Right: Login Form */}
-      <motion.div 
+      <motion.div
         initial={{ x: 200, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
@@ -175,19 +174,19 @@ const Login = () => {
       >
         <div className="max-w-md w-full space-y-8 bg-white/80 backdrop-blur-lg p-8 rounded-xl shadow-xl">
           <div className="text-center">
-            <motion.div 
+            <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
               className="flex justify-center lg:hidden mb-6"
             >
-              <img 
-                src={RenterInLogo} 
-                alt="RenterIn Logo" 
-                className="h-24 w-auto object-contain" 
+              <img
+                src={RenterInLogo}
+                alt="RenterIn Logo"
+                className="h-24 w-auto object-contain"
               />
             </motion.div>
-            <motion.h2 
+            <motion.h2
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.5 }}
@@ -195,7 +194,7 @@ const Login = () => {
             >
               Selamat Datang Kembali!
             </motion.h2>
-            <motion.p 
+            <motion.p
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.6 }}
@@ -204,24 +203,22 @@ const Login = () => {
               Masukkan kredensial Anda untuk mengakses akun
             </motion.p>
           </div>
-          
-          <motion.form 
+
+          <motion.form
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.7 }}
-            className="mt-8 space-y-6" 
+            className="mt-8 space-y-6"
             onSubmit={handleSubmit}
           >
             <div className="space-y-5">
-              <div 
-                className={`relative transition-all duration-300 ${
-                  activeField === 'email' ? 'transform -translate-y-1' : ''
-                }`}
+              <div
+                className={`relative transition-all duration-300 ${activeField === 'email' ? 'transform -translate-y-1' : ''
+                  }`}
               >
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FiMail className={`h-5 w-5 transition-colors ${
-                    activeField === 'email' ? 'text-blue-600' : 'text-gray-400'
-                  }`} />
+                  <FiMail className={`h-5 w-5 transition-colors ${activeField === 'email' ? 'text-blue-600' : 'text-gray-400'
+                    }`} />
                 </div>
                 <input
                   id="email-address"
@@ -237,16 +234,14 @@ const Login = () => {
                   onBlur={() => setActiveField(null)}
                 />
               </div>
-              
-              <div 
-                className={`relative transition-all duration-300 ${
-                  activeField === 'password' ? 'transform -translate-y-1' : ''
-                }`}
+
+              <div
+                className={`relative transition-all duration-300 ${activeField === 'password' ? 'transform -translate-y-1' : ''
+                  }`}
               >
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FiLock className={`h-5 w-5 transition-colors ${
-                    activeField === 'password' ? 'text-blue-600' : 'text-gray-400'
-                  }`} />
+                  <FiLock className={`h-5 w-5 transition-colors ${activeField === 'password' ? 'text-blue-600' : 'text-gray-400'
+                    }`} />
                 </div>
                 <input
                   id="password"
@@ -262,8 +257,8 @@ const Login = () => {
                   onBlur={() => setActiveField(null)}
                 />
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="text-gray-400 hover:text-blue-600 focus:outline-none transition-colors"
                   >
@@ -316,7 +311,7 @@ const Login = () => {
             </div>
           </motion.form>
 
-          <motion.div 
+          <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.9 }}
@@ -334,7 +329,7 @@ const Login = () => {
           </motion.div>
         </div>
       </motion.div>
-      
+
       {/* Decorative elements */}
       <div className="hidden lg:block absolute bottom-5 left-5 text-white/50 text-xs">
         &copy; {new Date().getFullYear()} RenterIn. All rights reserved.

@@ -6,336 +6,374 @@ import { toast } from 'react-hot-toast';
 
 const AdminEditProperty = () => {
   const navigate = useNavigate();
-  const { id } = useParams();
-  
+  const { id: propertyId } = useParams(); // Menggunakan propertyId agar lebih jelas
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     price_per_night: '',
     location: '',
-    type: 'apartment',
+    category: 'apartment', // Diganti dari 'type' agar konsisten dengan AddProperty
     max_guests: 2,
     bedrooms: 1,
     bathrooms: 1,
-    status: 'active',
+    status: 'active', // 'status' mungkin lebih cocok daripada is_available
+    size: '',         // Tambahkan size jika ada di model properti
+    is_featured: false, // Tambahkan jika ada
   });
-  
+
+  // State untuk fasilitas
+  // Setiap facility akan memiliki: { id (dari DB), property_id, name, condition, available (frontend flag) }
   const [facilities, setFacilities] = useState([]);
+  const [originalFacilities, setOriginalFacilities] = useState([]); // Untuk melacak perubahan
+
+  // State untuk gambar
+  // Setiap image akan memiliki: { id (dari DB jika ada), url (dari DB atau preview), isMain, isExisting, file (untuk gambar baru) }
   const [images, setImages] = useState([]);
-  const [originalImages, setOriginalImages] = useState([]);
-  const [imageFiles, setImageFiles] = useState([]);
-  const [imagesToRemove, setImagesToRemove] = useState([]);
-  const [newFacility, setNewFacility] = useState({ name: '', available: true, condition: 'good' });
+  const [imageFilesToUpload, setImageFilesToUpload] = useState([]); // Hanya file baru yang akan diupload
+  const [imageIdsToRemove, setImageIdsToRemove] = useState([]);   // ID gambar dari DB yang akan dihapus
+
+  const [newFacility, setNewFacility] = useState({ name: '', condition: 'berfungsi' }); // available tidak perlu di sini
   const [isAddingFacility, setIsAddingFacility] = useState(false);
-  
-  // Fetch property details
+
+
+  // --- Fetch Property Details ---
   useEffect(() => {
     const fetchPropertyDetails = async () => {
       setIsLoading(true);
+      setError(null);
       try {
-        // In a real implementation, you would use API call:
-        // const response = await axios.get(`http://localhost:3000/api/properties/${id}`);
-        
-        // For development/demo
-        setTimeout(() => {
-          // Dummy property data
-          const demoProperty = {
-            id: parseInt(id),
-            title: `Property ${id}`,
-            description: `This is a detailed description of property ${id}. It features multiple rooms, a beautiful view, and is located in a prime area.`,
-            type: ['Apartment', 'House', 'Villa', 'Kost', 'Cottage'][Math.floor(Math.random() * 5)].toLowerCase(),
-            location: ['Jakarta', 'Bandung', 'Surabaya', 'Bali', 'Yogyakarta'][Math.floor(Math.random() * 5)],
-            price_per_night: Math.floor(Math.random() * 1500000) + 500000,
-            owner_id: Math.floor(Math.random() * 10) + 1,
-            owner_name: ['John Smith', 'Sarah Johnson', 'Michael Lee', 'Maria Garcia', 'David Chen'][Math.floor(Math.random() * 5)],
-            max_guests: Math.floor(Math.random() * 8) + 2,
-            bedrooms: Math.floor(Math.random() * 5) + 1,
-            bathrooms: Math.floor(Math.random() * 3) + 1,
-            status: ['active', 'pending', 'inactive'][Math.floor(Math.random() * 3)],
-            images: Array(Math.floor(Math.random() * 5) + 2).fill().map((_, index) => ({
-              id: index + 1,
-              url: `https://source.unsplash.com/random/800x600?house&sig=${id}-${index}`,
-              is_main: index === 0
-            })),
-            facilities: [
-              { id: 1, name: 'WiFi', available: true, condition: 'good' },
-              { id: 2, name: 'AC', available: true, condition: 'excellent' },
-              { id: 3, name: 'Kitchen', available: Math.random() > 0.5, condition: Math.random() > 0.5 ? 'good' : 'n/a' },
-              { id: 4, name: 'Parking', available: Math.random() > 0.5, condition: Math.random() > 0.5 ? 'good' : 'n/a' },
-              { id: 5, name: 'Pool', available: Math.random() > 0.5, condition: Math.random() > 0.5 ? 'excellent' : 'n/a' },
-            ]
-          };
-          
-          setFormData({
-            title: demoProperty.title,
-            description: demoProperty.description,
-            price_per_night: demoProperty.price_per_night,
-            location: demoProperty.location,
-            type: demoProperty.type,
-            max_guests: demoProperty.max_guests,
-            bedrooms: demoProperty.bedrooms,
-            bathrooms: demoProperty.bathrooms,
-            status: demoProperty.status,
-          });
-          
-          setFacilities(demoProperty.facilities);
-          
-          const propertyImages = demoProperty.images.map(img => ({
-            id: img.id,
-            url: img.url,
-            isMain: img.is_main,
-            isExisting: true
-          }));
-          
-          setImages(propertyImages);
-          setOriginalImages(propertyImages);
-          setIsLoading(false);
-        }, 1000);
-        
-      } catch (error) {
-        console.error('Error fetching property:', error);
+        // 1. Fetch property data
+        const propertyResponse = await axios.get(`http://localhost:3000/api/properties/${propertyId}`);
+        const propertyData = propertyResponse.data?.data || propertyResponse.data; // Sesuaikan dengan struktur respons
+        console.log("Fetched Property Data:", propertyData);
+
+        if (!propertyData) {
+          throw new Error("Property data not found in response.");
+        }
+
+        // 2. Fetch facilities data (asumsi endpoint mengembalikan array fasilitas untuk property_id)
+        // Sesuaikan endpoint jika perlu
+        const facilitiesResponse = await axios.get(`http://localhost:3000/api/facilities/property/${propertyId}`);
+        const facilitiesData = facilitiesResponse.data?.data || facilitiesResponse.data || []; // Berharap array
+        console.log("Fetched Facilities Data:", facilitiesData);
+
+
+        // 3. Fetch images data (asumsi endpoint mengembalikan array gambar untuk property_id)
+        // Sesuaikan endpoint jika perlu
+        const imagesResponse = await axios.get(`http://localhost:3000/api/images/property/${propertyId}`);
+        // Berharap struktur { success: true, data: [{id, url, is_thumbnail, property_id}, ...] }
+        const imagesData = imagesResponse.data?.data || imagesResponse.data || []; // Berharap array
+        console.log("Fetched Images Data:", imagesData);
+
+        // Set form data
+        setFormData({
+          title: propertyData.title || '',
+          description: propertyData.description || '',
+          price_per_night: propertyData.price_per_night || '',
+          location: propertyData.location || '',
+          category: propertyData.category || 'apartment',
+          max_guests: propertyData.max_guests || 2,
+          bedrooms: propertyData.bedrooms || 1,
+          bathrooms: propertyData.bathrooms || 1,
+          status: propertyData.status || 'active', // Jika ada status di backend
+          size: propertyData.size || '',
+          is_featured: propertyData.is_featured || false, // Jika ada is_featured
+          // Pastikan semua field yang ada di state formData diisi dari propertyData
+        });
+
+        // Set facilities
+        // Backend mungkin tidak punya field 'available', jadi kita tambahkan di frontend
+        // Dan fasilitas yang ada dari DB pasti 'available' secara default di UI
+        const formattedFacilities = Array.isArray(facilitiesData) ? facilitiesData.map(fac => ({
+          id: fac.id, // ID dari database
+          property_id: fac.property_id,
+          name: fac.name,
+          condition: fac.condition || 'berfungsi',
+          available: true, // Anggap semua fasilitas yg ada di DB itu "dicentang" di UI
+          isExisting: true,
+        })) : [];
+        setFacilities(formattedFacilities);
+        setOriginalFacilities(JSON.parse(JSON.stringify(formattedFacilities))); // Deep copy
+
+        // Set images
+        const propertyImages = Array.isArray(imagesData) ? imagesData.map(img => ({
+          id: img.id,         // ID dari database
+          url: img.url,       // URL gambar dari server
+          isMain: img.is_thumbnail || false, // `is_thumbnail` dari backend menentukan isMain
+          isExisting: true,   // Tandai sebagai gambar yang sudah ada
+          file: null          // Tidak ada file untuk gambar yang sudah ada
+        })) : [];
+        setImages(propertyImages);
+
+      } catch (err) {
+        console.error('Error fetching property details:', err.response?.data || err.message);
         setError('Failed to fetch property details. Please try again later.');
+        toast.error('Failed to load property details.');
+      } finally {
         setIsLoading(false);
       }
     };
-    
-    fetchPropertyDetails();
-  }, [id]);
-  
-  const handleInputChange = (e) => {
-    const { name, value, type } = e.target;
-    
-    if (type === 'number') {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value === '' ? '' : Number(value)
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
+
+    if (propertyId) {
+      fetchPropertyDetails();
     }
+  }, [propertyId]);
+
+  // --- Handle Input Change ---
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : (type === 'number' && value !== '' ? Number(value) : value)
+    }));
   };
-  
+
+  // --- Handle Image Upload (untuk gambar BARU) ---
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
-    
-    // Limit to 10 images
+
     if (images.length + files.length > 10) {
-      toast.error('Maximum 10 images allowed');
+      toast.error(`Maximum 10 images allowed. You currently have ${images.length} and are trying to add ${files.length}.`);
       return;
     }
-    
-    // Preview images
-    const newImages = files.map(file => ({
-      file,
-      preview: URL.createObjectURL(file),
-      isMain: images.length === 0,
-      isExisting: false
-    }));
-    
-    setImages(prev => [...prev, ...newImages]);
-    setImageFiles(prev => [...prev, ...files]);
-  };
-  
-  const removeImage = (index) => {
-    const newImages = [...images];
-    const imageToRemove = newImages[index];
-    
-    // If removing main image, set first remaining image as main
-    if (imageToRemove.isMain && newImages.length > 1) {
-      const nextIndex = index === newImages.length - 1 ? 0 : index + 1;
-      newImages[nextIndex].isMain = true;
+    const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+    const oversizedFiles = files.filter(file => file.size > MAX_SIZE);
+    if (oversizedFiles.length > 0) {
+      toast.error(`${oversizedFiles.length} image(s) exceed the 5MB size limit.`);
+      return;
     }
-    
-    // If it's an existing image, add it to remove list for backend
+    const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+    const invalidFiles = files.filter(file => !validTypes.includes(file.type));
+    if (invalidFiles.length > 0) {
+      toast.error(`${invalidFiles.length} file(s) are not valid image types (allowed: JPG, PNG, WEBP).`);
+      return;
+    }
+
+    const newImageObjects = files.map(file => ({
+      id: null, // Belum ada ID dari DB
+      url: URL.createObjectURL(file), // Buat preview URL
+      isMain: images.filter(img => img.isMain).length === 0 && images.length === 0, // Jadi main jika belum ada gambar atau belum ada yg main
+      isExisting: false, // Ini gambar baru
+      file: file // Simpan file objectnya
+    }));
+
+    setImages(prev => [...prev, ...newImageObjects]);
+    setImageFilesToUpload(prev => [...prev, ...files]); // Tambahkan ke daftar file yang akan diupload
+  };
+
+  // --- Remove Image ---
+  const removeImage = (indexToRemove) => {
+    const imageToRemove = images[indexToRemove];
+
     if (imageToRemove.isExisting) {
-      setImagesToRemove(prev => [...prev, imageToRemove.id]);
+      // Jika gambar dari DB, tambahkan ID-nya ke daftar yang akan dihapus di backend
+      setImageIdsToRemove(prev => [...prev, imageToRemove.id]);
     } else {
-      // Revoke object URL to prevent memory leaks
-      URL.revokeObjectURL(imageToRemove.preview);
-      
-      // Remove from imageFiles
-      const newImageFiles = [...imageFiles];
-      const fileIndex = newImageFiles.findIndex((_, i) => {
-        const nonExistingImagesUpToIndex = images
-          .slice(0, index)
-          .filter(img => !img.isExisting).length;
-        return i === nonExistingImagesUpToIndex;
-      });
-      
-      if (fileIndex !== -1) {
-        newImageFiles.splice(fileIndex, 1);
-        setImageFiles(newImageFiles);
-      }
+      // Jika gambar baru (preview), hapus file dari imageFilesToUpload dan revoke object URL
+      URL.revokeObjectURL(imageToRemove.url);
+      setImageFilesToUpload(prevFiles => prevFiles.filter(file => file !== imageToRemove.file));
     }
-    
-    newImages.splice(index, 1);
-    setImages(newImages);
+
+    const updatedImages = images.filter((_, index) => index !== indexToRemove);
+
+    // Jika gambar yang dihapus adalah main, dan masih ada gambar lain, jadikan gambar pertama sebagai main
+    if (imageToRemove.isMain && updatedImages.length > 0 && !updatedImages.some(img => img.isMain)) {
+      updatedImages[0].isMain = true;
+    }
+
+    setImages(updatedImages);
   };
-  
-  const setMainImage = (index) => {
-    const newImages = images.map((img, i) => ({
-      ...img,
-      isMain: i === index,
-    }));
-    setImages(newImages);
+
+  // --- Set Main Image ---
+  const setMainImage = (indexToSetMain) => {
+    setImages(prevImages =>
+      prevImages.map((img, i) => ({
+        ...img,
+        isMain: i === indexToSetMain,
+      }))
+    );
   };
-  
+
+  // --- Facility Handlers ---
+  const handleFacilityChange = (index, field, value) => {
+    const updatedFacilities = [...facilities];
+    const facility = updatedFacilities[index];
+    facility[field] = value;
+
+    // Jika facility di-uncheck (available: false), set 'isExisting' jadi false
+    // agar bisa dideteksi sebagai fasilitas yang akan dihapus/diupdate statusnya.
+    // Backend perlu logika untuk menghapus facility link jika tidak dikirim atau 'available: false'.
+    // Atau, Anda bisa mengirim semua fasilitas dan backend yang menentukan.
+    if (field === 'available') {
+        if (value === false && facility.isExisting) {
+            // Tandai untuk dihapus atau di-nonaktifkan di backend
+            // Mungkin perlu field 'toBeRemoved' atau backend menghapus yg tidak ada di list akhir
+        }
+    }
+    setFacilities(updatedFacilities);
+  };
+
+  const handleNewFacilityNameChange = (value) => {
+    setNewFacility(prev => ({ ...prev, name: value }));
+  };
+  const handleNewFacilityConditionChange = (value) => {
+    setNewFacility(prev => ({ ...prev, condition: value }));
+  };
+
+
+const addFacilityToList = () => {
+    if (!newFacility.name.trim()) {
+      toast.error('Facility name cannot be empty.');
+      return;
+    }
+    if (facilities.some(f => f.name.toLowerCase() === newFacility.name.toLowerCase())) {
+      toast.error(`Facility "${newFacility.name}" already exists.`);
+      return;
+    }
+    setFacilities(prev => [
+      ...prev,
+      {
+        id: `new-${Date.now()}`, // ID sementara untuk UI
+        name: newFacility.name,
+        condition: newFacility.condition,
+        available: true, // Fasilitas baru otomatis available/tercentang
+        isExisting: false, // Ini fasilitas baru
+      }
+    ]);
+    setNewFacility({ name: '', condition: 'berfungsi' });
+    setIsAddingFacility(false);
+  };
+
+const removeFacilityFromList = (indexToRemove) => {
+    const facilityToRemove = facilities[indexToRemove];
+    // Jika facility ini dari DB, Anda mungkin perlu menangani penghapusannya di backend
+    // Untuk saat ini, kita hanya menghapusnya dari state UI
+    // Anda bisa menambahkan id facility ke list `facilitiesToRemove` jika perlu
+    setFacilities(prev => prev.filter((_, index) => index !== indexToRemove));
+};
+
+
+  // --- Handle Submit (Update Property) ---
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Validation
-    if (!formData.title.trim()) {
-      toast.error('Title is required');
+
+    // Validasi dasar
+    if (!formData.title.trim() || !formData.location.trim() || formData.price_per_night <= 0) {
+      toast.error('Please fill all required fields (Title, Location, Price).');
       return;
     }
-    
-    if (!formData.location.trim()) {
-      toast.error('Location is required');
-      return;
-    }
-    
-    if (!formData.price_per_night || formData.price_per_night <= 0) {
-      toast.error('Price must be greater than 0');
-      return;
-    }
-    
     if (images.length === 0) {
-      toast.error('At least one image is required');
+      toast.error('At least one image is required.');
       return;
     }
-    
+    if (!images.some(img => img.isMain)) {
+      toast.error('Please select a main image.');
+      return;
+    }
+
     setIsSubmitting(true);
-    
+
+    // Backend mungkin lebih suka JSON untuk detail dan fasilitas, dan FormData untuk gambar
+    // Atau, jika backend bisa handle `multipart/form-data` dengan JSON string, itu juga bisa.
+    // Opsi 1: Kirim beberapa request (PUT untuk detail, POST/DELETE untuk gambar/fasilitas)
+    // Opsi 2: Kirim satu request `multipart/form-data` (lebih kompleks di backend)
+
+    // Mari kita coba Opsi 2 (Satu request multipart/form-data)
+    // Backend harus bisa parse string JSON dari FormData
+    const dataToSubmit = new FormData();
+
+    // 1. Append property details (data form)
+    for (const key in formData) {
+      dataToSubmit.append(key, formData[key]);
+    }
+
+    // 2. Append facilities data
+    // Kirim hanya fasilitas yang 'available' atau kirim semua dengan statusnya
+    // Ini tergantung bagaimana backend Anda mengharapkan update fasilitas
+    const activeFacilities = facilities
+        .filter(f => f.available) // Hanya kirim fasilitas yang dicentang
+        .map(f => ({ // Kirim hanya data yang relevan untuk backend
+            id: f.isExisting ? f.id : undefined, // Kirim ID jika sudah ada
+            name: f.name,
+            condition: f.condition,
+            // property_id akan dihandle backend berdasarkan propertyId
+        }));
+    dataToSubmit.append('facilities', JSON.stringify(activeFacilities)); // Kirim sebagai string JSON
+
+
+    // 3. Append image IDs to remove
+    if (imageIdsToRemove.length > 0) {
+      dataToSubmit.append('imageIdsToRemove', JSON.stringify(imageIdsToRemove));
+    }
+
+    // 4. Append new image files
+    imageFilesToUpload.forEach((file, index) => {
+      dataToSubmit.append('newImages', file); // Backend akan menerima array 'newImages[]'
+    });
+
+    // 5. Tentukan ID gambar yang menjadi thumbnail/main
+    const mainImage = images.find(img => img.isMain);
+    if (mainImage) {
+      if (mainImage.isExisting) {
+        dataToSubmit.append('mainImageId', mainImage.id); // ID gambar dari DB
+      } else if (mainImage.file) {
+        // Jika gambar utama adalah gambar baru, backend perlu tahu file mana itu
+        // Cari index file ini di imageFilesToUpload
+        const mainNewImageIndex = imageFilesToUpload.indexOf(mainImage.file);
+        if (mainNewImageIndex !== -1) {
+            dataToSubmit.append('mainNewImageIndex', mainNewImageIndex);
+        }
+      }
+    }
+    // Alternatif untuk main image: backend bisa saja otomatis set is_thumbnail=false untuk semua gambar lama,
+    // lalu set is_thumbnail=true untuk mainImageId atau gambar baru pertama jika tidak ada mainImageId.
+
+    console.log("Data to submit (FormData entries):");
+    for (let pair of dataToSubmit.entries()) {
+        console.log(pair[0]+ ': ' + (pair[1] instanceof File ? pair[1].name : pair[1]));
+    }
+
     try {
-      // In a real implementation, you would use FormData to upload images along with property data
-      /*
-      const propertyData = new FormData();
-      
-      // Append property details
-      Object.keys(formData).forEach(key => {
-        propertyData.append(key, formData[key]);
-      });
-      
-      // Append facilities
-      propertyData.append('facilities', JSON.stringify(facilities));
-      
-      // Append images to remove
-      if (imagesToRemove.length > 0) {
-        propertyData.append('imagesToRemove', JSON.stringify(imagesToRemove));
-      }
-      
-      // Append new images
-      imageFiles.forEach(file => {
-        propertyData.append('images', file);
-      });
-      
-      // Set main image
-      const mainImageIndex = images.findIndex(img => img.isMain);
-      if (mainImageIndex !== -1) {
-        const mainImage = images[mainImageIndex];
-        if (mainImage.isExisting) {
-          propertyData.append('mainImageId', mainImage.id);
-        } else {
-          propertyData.append('mainImageIndex', imageFiles.indexOf(mainImage.file));
+      const token = localStorage.getItem('token');
+      const response = await axios.put(
+        `http://localhost:3000/api/properties/${propertyId}`,
+        dataToSubmit,
+        {
+          headers: {
+            // 'Content-Type': 'multipart/form-data' // Axios set otomatis untuk FormData
+            Authorization: `Bearer ${token}`,
+          },
         }
-      }
-      
-      const response = await axios.put(`http://localhost:3000/api/properties/${id}`, propertyData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      */
-      
-      // For development/demo
-      setTimeout(() => {
-        toast.success('Property updated successfully');
-        navigate('/admin/properties');
-      }, 1500);
-      
-    } catch (error) {
-      console.error('Error updating property:', error);
-      toast.error(error.response?.data?.message || 'Failed to update property');
+      );
+
+      console.log('Property update response:', response.data);
+      toast.success('Property updated successfully!');
+      navigate('/admin/properties');
+
+    } catch (err) {
+      console.error('Error updating property:', err.response?.data || err.message);
+      toast.error(err.response?.data?.message || 'Failed to update property.');
     } finally {
       setIsSubmitting(false);
     }
   };
-  
-  const handleFacilityChange = (index, field, value) => {
-    const updatedFacilities = [...facilities];
-    updatedFacilities[index][field] = value;
-    
-    // Reset condition if facility is not available
-    if (field === 'available' && value === false) {
-      updatedFacilities[index].condition = 'n/a';
-    } else if (field === 'available' && value === true && updatedFacilities[index].condition === 'n/a') {
-      updatedFacilities[index].condition = 'good';
-    }
-    
-    setFacilities(updatedFacilities);
-  };
-  
-  const handleNewFacilityChange = (field, value) => {
-    setNewFacility(prev => ({
-      ...prev,
-      [field]: value
-    }));
-    
-    if (field === 'available' && value === false) {
-      setNewFacility(prev => ({
-        ...prev,
-        condition: 'n/a'
-      }));
-    }
-  };
-  
-  const addFacility = () => {
-    if (!newFacility.name.trim()) {
-      toast.error('Facility name is required');
-      return;
-    }
-    
-    // Check if facility already exists
-    if (facilities.some(f => f.name.toLowerCase() === newFacility.name.toLowerCase())) {
-      toast.error('Facility already exists');
-      return;
-    }
-    
-    // In a real application, you might generate a temporary ID or handle this differently
-    const newFacilityWithId = {
-      ...newFacility,
-      id: `new-${Date.now()}`
-    };
-    
-    setFacilities([...facilities, newFacilityWithId]);
-    setNewFacility({ name: '', available: true, condition: 'good' });
-    setIsAddingFacility(false);
-  };
-  
-  const removeFacility = (index) => {
-    const updatedFacilities = [...facilities];
-    updatedFacilities.splice(index, 1);
-    setFacilities(updatedFacilities);
-  };
-  
-  // Clean up object URLs when component unmounts
+
+
+  // --- Clean up object URLs ---
   useEffect(() => {
     return () => {
       images.forEach(image => {
-        if (!image.isExisting && image.preview) {
-          URL.revokeObjectURL(image.preview);
+        if (!image.isExisting && image.url) { // Hanya revoke untuk preview gambar baru
+          URL.revokeObjectURL(image.url);
         }
       });
     };
-  }, []);
+  }, [images]); // Jalankan ketika images berubah
   
   if (isLoading) {
     return (

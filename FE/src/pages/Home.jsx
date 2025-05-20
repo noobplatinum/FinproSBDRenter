@@ -14,21 +14,21 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isScrolled, setIsScrolled] = useState(false);
   const featuredSectionRef = useRef(null);
-  
+
   // Hero image collection for carousel
   const heroImages = [
     'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80',
     'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80',
     'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-1.2.1&auto=format&fit=crop&w=1500&q=80'
   ];
-  
+
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentImageIndex((prevIndex) => (prevIndex + 1) % heroImages.length);
     }, 5000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -47,7 +47,7 @@ export default function Home() {
         const response = await getAvailableProperties();
         if (response.success) {
           setProperties(response.data);
-          
+
           // Fetch thumbnails for each property
           const thumbnailPromises = response.data.map(async (property) => {
             const thumbnailResponse = await getPropertyThumbnail(property.id);
@@ -56,16 +56,16 @@ export default function Home() {
             }
             return null;
           });
-          
+
           const thumbnailResults = await Promise.all(thumbnailPromises);
           const thumbnailMap = {};
-          
+
           thumbnailResults.forEach(result => {
             if (result) {
               thumbnailMap[result.id] = result.url;
             }
           });
-          
+
           setThumbnails(thumbnailMap);
         }
       } catch (error) {
@@ -92,15 +92,15 @@ export default function Home() {
 
   const filteredProperties = properties.filter(property => {
     const matchesCategory = selectedCategory === 'all' || property.category?.toLowerCase() === selectedCategory;
-    const matchesSearch = property.title?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         property.location?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = property.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      property.location?.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
   return (
     <div className="w-full overflow-x-hidden bg-white">
       {/* Hero Section with Carousel and Gradient Overlay */}
-      <section 
+      <section
         className="relative w-full h-screen flex items-center justify-center overflow-hidden"
       >
         {/* Image carousel with animation */}
@@ -109,22 +109,22 @@ export default function Home() {
             key={index}
             className="absolute inset-0 w-full h-full"
             initial={{ opacity: 0 }}
-            animate={{ 
+            animate={{
               opacity: index === currentImageIndex ? 1 : 0,
-              scale: index === currentImageIndex ? 1 : 1.1 
+              scale: index === currentImageIndex ? 1 : 1.1
             }}
             transition={{ duration: 1.5, ease: "easeInOut" }}
-            style={{ 
+            style={{
               backgroundImage: `url(${image})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center'
             }}
           />
         ))}
-        
+
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70 z-10"></div>
-        
+
         {/* Content */}
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 text-center z-20 relative">
           <motion.div
@@ -133,25 +133,25 @@ export default function Home() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="mb-6 flex justify-center"
           >
-            <img 
-              src={RenterInLogo} 
-              alt="RenterIn Logo" 
-              className="h-24 w-auto object-contain mb-4" 
+            <img
+              src={RenterInLogo}
+              alt="RenterIn Logo"
+              className="h-24 w-auto object-contain mb-4"
             />
           </motion.div>
-          
-          <motion.h1 
+
+          <motion.h1
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.4 }}
             className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6"
           >
             <span className="bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
-              Temukan Tempat Tinggal Impian Anda
+              Cara Mudah Sewa Properti
             </span>
           </motion.h1>
-          
-          <motion.p 
+
+          <motion.p
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.6 }}
@@ -159,9 +159,9 @@ export default function Home() {
           >
             Sewa properti kualitas terbaik dengan harga terjangkau di seluruh Indonesia
           </motion.p>
-          
+
           {/* Enhanced Search Box with Animation */}
-          <motion.div 
+          <motion.div
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.8 }}
@@ -178,7 +178,7 @@ export default function Home() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <button className="bg-blue-600 hover:bg-blue-700 px-8 md:px-10 py-4 text-white rounded-xl flex items-center transition-all duration-300 shadow-lg hover:shadow-xl mx-auto md:mx-4 w-full md:w-auto justify-center transform hover:scale-105">
                   <FiSearch className="h-5 w-5 mr-2" />
@@ -187,18 +187,6 @@ export default function Home() {
               </div>
             </div>
           </motion.div>
-          
-          {/* Scroll down button */}
-          <motion.button
-            onClick={scrollToFeatured}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.2, duration: 0.8 }}
-            className="absolute bottom-12 left-1/2 transform -translate-x-1/2 flex flex-col items-center text-white hover:text-blue-300 transition-colors"
-          >
-            <span className="mb-2 text-sm font-medium">Jelajahi Properti</span>
-            <FaChevronDown className="animate-bounce" />
-          </motion.button>
         </div>
       </section>
 
@@ -218,7 +206,7 @@ export default function Home() {
       {/* Category Filters - Redesigned */}
       <section ref={featuredSectionRef} className="py-16 px-4">
         <div className="max-w-7xl mx-auto">
-          <motion.div 
+          <motion.div
             initial={{ y: 30, opacity: 0 }}
             whileInView={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8 }}
@@ -234,8 +222,8 @@ export default function Home() {
               <FiArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
             </Link>
           </motion.div>
-          
-          <motion.div 
+
+          <motion.div
             initial={{ y: 30, opacity: 0 }}
             whileInView={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}
@@ -249,11 +237,10 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1, duration: 0.5 }}
                 viewport={{ once: true }}
-                className={`flex-shrink-0 flex items-center justify-center px-8 py-4 rounded-xl ${
-                  selectedCategory === category.id
+                className={`flex-shrink-0 flex items-center justify-center px-8 py-4 rounded-xl ${selectedCategory === category.id
                     ? 'bg-blue-600 text-white shadow-lg'
                     : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
-                } transition-all duration-300 transform hover:-translate-y-1`}
+                  } transition-all duration-300 transform hover:-translate-y-1`}
                 onClick={() => setSelectedCategory(category.id)}
               >
                 <span className="flex items-center text-lg">
@@ -335,161 +322,157 @@ export default function Home() {
       </section>
 
       {/* Keunggulan RenterIn - Interactive Features Section */}
-<section className="py-24 px-4 bg-gradient-to-br from-gray-50 via-white to-blue-50 relative overflow-hidden">
-  {/* Decorative elements */}
-  <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-10 pointer-events-none">
-    <div className="absolute -top-40 -left-40 w-80 h-80 bg-blue-500 rounded-full"></div>
-    <div className="absolute top-1/2 -right-20 w-60 h-60 bg-purple-500 rounded-full"></div>
-    <div className="absolute -bottom-40 left-1/3 w-80 h-80 bg-cyan-500 rounded-full"></div>
-    
-    <div className="absolute w-full h-full">
-      <div className="w-full h-full" style={{ 
-        backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z\' fill=\'%23bae6fd\' fill-opacity=\'0.2\' fill-rule=\'evenodd\'/%3E%3C/svg%3E")',
-        backgroundSize: '30px 30px'
-      }}></div>
-    </div>
-  </div>
+      <section className="py-24 px-4 bg-gradient-to-br from-gray-50 via-white to-blue-50 relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-10 pointer-events-none">
+          <div className="absolute -top-40 -left-40 w-80 h-80 bg-blue-500 rounded-full"></div>
+          <div className="absolute top-1/2 -right-20 w-60 h-60 bg-purple-500 rounded-full"></div>
+          <div className="absolute -bottom-40 left-1/3 w-80 h-80 bg-cyan-500 rounded-full"></div>
 
-  <div className="max-w-7xl mx-auto relative z-10">
-    <motion.div 
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8 }}
-      viewport={{ once: true }}
-      className="text-center mb-16 max-w-3xl mx-auto"
-    >
-      <span className="text-sm font-semibold px-4 py-1.5 rounded-full bg-blue-100 text-blue-700 inline-block mb-4">
-        KEUNGGULAN KAMI
-      </span>
-      <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 bg-clip-text text-transparent">
-        Fitur Unggulan RenterIn
-      </h2>
-      <p className="text-xl text-gray-600 leading-relaxed">
-        Platform pencarian properti modern yang dirancang untuk memberikan pengalaman terbaik dalam menemukan hunian impian Anda
-      </p>
-    </motion.div>
-
-    {/* Features in interactive cards */}
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {[
-        {
-          icon: (
-            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-            </svg>
-          ),
-          title: "Pencarian Cerdas",
-          description: "Algoritma pencarian canggih yang memahami preferensi Anda dan menampilkan properti yang paling sesuai dengan kebutuhan.",
-          bgGradient: "from-blue-500 to-blue-600",
-          hoverGradient: "from-blue-600 to-blue-700"
-        },
-        {
-          icon: (
-            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
-            </svg>
-          ),
-          title: "Pembayaran Aman",
-          description: "Transaksi terjamin dengan sistem pembayaran terenkripsi dan perlindungan penuh untuk setiap reservasi Anda.",
-          bgGradient: "from-indigo-500 to-indigo-600",
-          hoverGradient: "from-indigo-600 to-indigo-700"
-        },
-        {
-          icon: (
-            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-          ),
-          title: "Booking Instan",
-          description: "Proses pemesanan cepat tanpa menunggu. Konfirmasi langsung dan e-tiket otomatis untuk kenyamanan Anda.",
-          bgGradient: "from-cyan-500 to-cyan-600",
-          hoverGradient: "from-cyan-600 to-cyan-700"
-        },
-        {
-          icon: (
-            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
-            </svg>
-          ),
-          title: "Filter Canggih",
-          description: "Tentukan pencarian Anda dengan filter detail seperti fasilitas, range harga, lokasi spesifik, dan banyak lagi.",
-          bgGradient: "from-purple-500 to-purple-600",
-          hoverGradient: "from-purple-600 to-purple-700"
-        },
-        {
-          icon: (
-            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
-            </svg>
-          ),
-          title: "Ulasan Transparan",
-          description: "Ulasan asli dari pengguna sebelumnya membantu Anda membuat keputusan dengan lebih percaya diri.",
-          bgGradient: "from-green-500 to-green-600",
-          hoverGradient: "from-green-600 to-green-700"
-        },
-        {
-          icon: (
-            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"></path>
-            </svg>
-          ),
-          title: "Virtual Tour 360°",
-          description: "Jelajahi properti secara virtual dengan teknologi 360° yang imersif sebelum Anda memutuskan untuk datang.",
-          bgGradient: "from-rose-500 to-rose-600",
-          hoverGradient: "from-rose-600 to-rose-700"
-        },
-      ].map((feature, index) => (
-        <motion.div
-          key={index}
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: index * 0.1 }}
-          viewport={{ once: true }}
-          className="relative group"
-        >
-          <div className={`absolute inset-0 bg-gradient-to-r ${feature.hoverGradient} transform rotate-3 scale-x-105 scale-y-105 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
-          <div className={`relative h-full bg-gradient-to-r ${feature.bgGradient} rounded-2xl p-8 overflow-hidden transform group-hover:-translate-y-2 transition-transform duration-300 shadow-lg group-hover:shadow-xl`}>
-            {/* Semi-transparent icon background */}
-            <div className="absolute right-0 top-0 w-32 h-32 -mt-10 -mr-10 rounded-full bg-white opacity-10"></div>
-            
-            {/* Icon */}
-            <div className="relative z-10 mb-8 w-16 h-16 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
-              {feature.icon}
-            </div>
-            
-            {/* Content */}
-            <h3 className="relative z-10 text-2xl font-bold text-white mb-4">
-              {feature.title}
-            </h3>
-            <p className="relative z-10 text-white/90 leading-relaxed">
-              {feature.description}
-            </p>
+          <div className="absolute w-full h-full">
+            <div className="w-full h-full" style={{
+              backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z\' fill=\'%23bae6fd\' fill-opacity=\'0.2\' fill-rule=\'evenodd\'/%3E%3C/svg%3E")',
+              backgroundSize: '30px 30px'
+            }}></div>
           </div>
-        </motion.div>
-      ))}
-    </div>
+        </div>
 
-    {/* Tambahkan CTA di bagian bawah menggantikan tabel perbandingan */}
-    <motion.div
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8, delay: 0.6 }}
-      viewport={{ once: true }}
-      className="mt-20 text-center"
-    >
-      <Link 
-        to="/register"
-        className="inline-flex items-center px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-medium text-lg rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
-      >
-        <span>Mulai Gunakan RenterIn Sekarang</span>
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-        </svg>
-      </Link>
-      <p className="text-gray-600 mt-6">RenterIn adalah pilihan terbaik untuk menemukan hunian impian Anda</p>
-    </motion.div>
-  </div>
-</section>
+        <div className="max-w-7xl mx-auto relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="text-center mb-16 max-w-3xl mx-auto"
+          >
+            <span className="text-sm font-semibold px-4 py-1.5 rounded-full bg-blue-100 text-blue-700 inline-block mb-4">
+              KEUNGGULAN KAMI
+            </span>
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 bg-clip-text text-transparent">
+              Fitur Unggulan RenterIn
+            </h2>
+            <p className="text-xl text-gray-600 leading-relaxed">
+              Platform pencarian properti modern yang dirancang untuk memberikan pengalaman terbaik dalam menemukan hunian impian Anda
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              {
+                icon: (
+                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                  </svg>
+                ),
+                title: "Pencarian Cerdas",
+                description: "Algoritma pencarian canggih yang memahami preferensi Anda dan menampilkan properti yang paling sesuai dengan kebutuhan.",
+                bgGradient: "from-blue-500 to-blue-600",
+                hoverGradient: "from-blue-600 to-blue-700"
+              },
+              {
+                icon: (
+                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                  </svg>
+                ),
+                title: "Pembayaran Aman",
+                description: "Transaksi terjamin dengan sistem pembayaran terenkripsi dan perlindungan penuh untuk setiap reservasi Anda.",
+                bgGradient: "from-indigo-500 to-indigo-600",
+                hoverGradient: "from-indigo-600 to-indigo-700"
+              },
+              {
+                icon: (
+                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                ),
+                title: "Booking Instan",
+                description: "Proses pemesanan cepat tanpa menunggu. Konfirmasi langsung dan e-tiket otomatis untuk kenyamanan Anda.",
+                bgGradient: "from-cyan-500 to-cyan-600",
+                hoverGradient: "from-cyan-600 to-cyan-700"
+              },
+              {
+                icon: (
+                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+                  </svg>
+                ),
+                title: "Filter Canggih",
+                description: "Tentukan pencarian Anda dengan filter detail seperti fasilitas, range harga, lokasi spesifik, dan banyak lagi.",
+                bgGradient: "from-purple-500 to-purple-600",
+                hoverGradient: "from-purple-600 to-purple-700"
+              },
+              {
+                icon: (
+                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
+                  </svg>
+                ),
+                title: "Ulasan Transparan",
+                description: "Ulasan asli dari pengguna sebelumnya membantu Anda membuat keputusan dengan lebih percaya diri.",
+                bgGradient: "from-green-500 to-green-600",
+                hoverGradient: "from-green-600 to-green-700"
+              },
+              {
+                icon: (
+                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"></path>
+                  </svg>
+                ),
+                title: "Virtual Tour 360°",
+                description: "Jelajahi properti secara virtual dengan teknologi 360° yang imersif sebelum Anda memutuskan untuk datang.",
+                bgGradient: "from-rose-500 to-rose-600",
+                hoverGradient: "from-rose-600 to-rose-700"
+              },
+            ].map((feature, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                viewport={{ once: true }}
+                className="relative group"
+              >
+                <div className={`absolute inset-0 bg-gradient-to-r ${feature.hoverGradient} transform rotate-3 scale-x-105 scale-y-105 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
+                <div className={`relative h-full bg-gradient-to-r ${feature.bgGradient} rounded-2xl p-8 overflow-hidden transform group-hover:-translate-y-2 transition-transform duration-300 shadow-lg group-hover:shadow-xl`}>
+                  <div className="absolute right-0 top-0 w-32 h-32 -mt-10 -mr-10 rounded-full bg-white opacity-10"></div>
+
+                  <div className="relative z-10 mb-8 w-16 h-16 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                    {feature.icon}
+                  </div>
+
+                  <h3 className="relative z-10 text-2xl font-bold text-white mb-4">
+                    {feature.title}
+                  </h3>
+                  <p className="relative z-10 text-white/90 leading-relaxed">
+                    {feature.description}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Tambahkan CTA di bagian bawah menggantikan tabel perbandingan */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            viewport={{ once: true }}
+            className="mt-20 text-center"
+          >
+            <Link
+              to="/register"
+              className="inline-flex items-center px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-medium text-lg rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
+            >
+              <span>Mulai Gunakan RenterIn Sekarang</span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </Link>
+            <p className="text-gray-600 mt-6">RenterIn adalah pilihan terbaik untuk menemukan hunian impian Anda</p>
+          </motion.div>
+        </div>
+      </section>
 
       {/* Promotion Section - Full Width with Animation */}
       <section className="py-24 px-4 w-full bg-gradient-to-r from-blue-50 to-white">
@@ -505,7 +488,7 @@ export default function Home() {
                 Mengapa Memilih <span className="bg-gradient-to-r from-blue-600 to-indigo-700 bg-clip-text text-transparent">RenterIn</span>?
               </h2>
               <div className="space-y-8">
-                <motion.div 
+                <motion.div
                   initial={{ y: 20, opacity: 0 }}
                   whileInView={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.2, duration: 0.5 }}
@@ -520,8 +503,8 @@ export default function Home() {
                     <p className="text-gray-600 text-lg">Semua properti kami telah melalui verifikasi dan pemeriksaan kualitas untuk kenyamanan Anda.</p>
                   </div>
                 </motion.div>
-                
-                <motion.div 
+
+                <motion.div
                   initial={{ y: 20, opacity: 0 }}
                   whileInView={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.3, duration: 0.5 }}
@@ -536,8 +519,8 @@ export default function Home() {
                     <p className="text-gray-600 text-lg">Tidak ada biaya tersembunyi. Apa yang Anda lihat adalah apa yang Anda bayar.</p>
                   </div>
                 </motion.div>
-                
-                <motion.div 
+
+                <motion.div
                   initial={{ y: 20, opacity: 0 }}
                   whileInView={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.4, duration: 0.5 }}
@@ -553,14 +536,14 @@ export default function Home() {
                   </div>
                 </motion.div>
               </div>
-              <motion.div 
+              <motion.div
                 initial={{ y: 20, opacity: 0 }}
                 whileInView={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.5, duration: 0.5 }}
                 viewport={{ once: true }}
                 className="mt-10"
               >
-                <Link 
+                <Link
                   to="/about"
                   className="group px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg inline-flex items-center transition-all duration-300 shadow-md hover:shadow-xl transform hover:-translate-y-1"
                 >
@@ -569,8 +552,8 @@ export default function Home() {
                 </Link>
               </motion.div>
             </motion.div>
-            
-            <motion.div 
+
+            <motion.div
               initial={{ x: 50, opacity: 0 }}
               whileInView={{ x: 0, opacity: 1 }}
               transition={{ duration: 0.8 }}
@@ -580,9 +563,9 @@ export default function Home() {
               <div className="relative">
                 <div className="absolute -top-4 -left-4 w-full h-full bg-blue-600/10 rounded-2xl"></div>
                 <div className="absolute -bottom-4 -right-4 w-full h-full border-2 border-blue-600/20 rounded-2xl"></div>
-                <img 
-                  src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1073&q=80" 
-                  alt="Apartemen Nyaman" 
+                <img
+                  src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1073&q=80"
+                  alt="Apartemen Nyaman"
                   className="rounded-2xl shadow-2xl w-full h-auto relative z-10"
                 />
               </div>
@@ -590,16 +573,16 @@ export default function Home() {
           </div>
         </div>
       </section>
-      
+
       {/* CTA Section */}
       <section className="py-20 px-4 bg-gradient-to-r from-blue-600 to-indigo-700 relative overflow-hidden">
         <div className="absolute inset-0 z-0 opacity-20">
           <div className="absolute top-20 left-20 w-64 h-64 bg-white rounded-full mix-blend-overlay filter blur-xl"></div>
           <div className="absolute bottom-20 right-20 w-80 h-80 bg-white rounded-full mix-blend-overlay filter blur-xl"></div>
         </div>
-        
+
         <div className="max-w-7xl mx-auto text-center relative z-10">
-          <motion.h2 
+          <motion.h2
             initial={{ y: 30, opacity: 0 }}
             whileInView={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8 }}
@@ -608,8 +591,8 @@ export default function Home() {
           >
             Siap Menemukan Hunian Impian Anda?
           </motion.h2>
-          
-          <motion.p 
+
+          <motion.p
             initial={{ y: 30, opacity: 0 }}
             whileInView={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}
@@ -618,22 +601,22 @@ export default function Home() {
           >
             Daftarkan diri Anda sekarang dan dapatkan akses ke ribuan properti berkualitas dengan harga terbaik.
           </motion.p>
-          
-          <motion.div 
+
+          <motion.div
             initial={{ y: 30, opacity: 0 }}
             whileInView={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.4 }}
             viewport={{ once: true }}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
-            <Link 
-              to="/register" 
+            <Link
+              to="/register"
               className="px-8 py-4 bg-white text-blue-600 hover:bg-blue-50 rounded-xl font-medium text-lg inline-flex items-center justify-center shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
             >
               Daftar Sekarang
             </Link>
-            <Link 
-              to="/properties" 
+            <Link
+              to="/properties"
               className="px-8 py-4 bg-transparent border-2 border-white text-white hover:bg-white/10 rounded-xl font-medium text-lg inline-flex items-center justify-center transition-all transform hover:-translate-y-1"
             >
               Jelajahi Properti
@@ -641,6 +624,6 @@ export default function Home() {
           </motion.div>
         </div>
       </section>
-        </div>
-      );
-    }
+    </div>
+  );
+}

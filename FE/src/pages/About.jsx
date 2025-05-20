@@ -278,10 +278,10 @@ const About = () => {
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
       >
         {[
-          { icon: "🏠", title: "50+", text: "Kota di Indonesia" },
-          { icon: "👥", title: "10,000+", text: "Properti Terdaftar" },
-          { icon: "🔍", title: "100%", text: "Terverifikasi" },
-          { icon: "🛡️", title: "24/7", text: "Dukungan" },
+          {title: "50+", text: "Kota di Indonesia" },
+          {title: "10,000+", text: "Properti Terdaftar" },
+          {title: "100%", text: "Terverifikasi" },
+          {title: "24/7", text: "Dukungan" },
         ].map((item, index) => (
           <motion.div
             key={index}

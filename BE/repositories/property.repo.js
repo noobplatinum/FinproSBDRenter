@@ -20,9 +20,9 @@ const propertyRepository = {
       INSERT INTO property (
         title, description, location, size, price_per_night,
         category, owner_id, is_available,
-        bedrooms, bathrooms, max_guests -- Tambahkan kolom baru di sini
+        bedrooms, bathrooms, max_guests 
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) -- Tambahkan placeholder baru
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) 
       RETURNING *
     `;
 
@@ -96,11 +96,9 @@ const propertyRepository = {
         category = COALESCE($7, category),
         owner_id = COALESCE($8, owner_id),
         is_available = COALESCE($9, is_available),
-        -- --- UPDATE KOLOM BARU ---
-        bedrooms = COALESCE($10, bedrooms),    -- Tambahkan update bedrooms
-        bathrooms = COALESCE($11, bathrooms),  -- Tambahkan update bathrooms
-        max_guests = COALESCE($12, max_guests) -- Tambahkan update max_guests
-        -- --- AKHIR UPDATE KOLOM BARU ---
+        bedrooms = COALESCE($10, bedrooms),    
+        bathrooms = COALESCE($11, bathrooms), 
+        max_guests = COALESCE($12, max_guests)
       WHERE id = $13 -- Ubah index placeholder untuk ID
       RETURNING *
     `;
