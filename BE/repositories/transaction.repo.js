@@ -1,19 +1,37 @@
 const db = require('../database/pg.database');
-
+const {pool} = require('../database/pg.database');
 const transactionRepository = {
   async create(transactionData) {
+  const client = await pool.connect(); 
+
+  try {
+    await client.query('BEGIN'); 
+
     const {
       user_id,
       property_id,
       start_date,
       end_date,
-      status,
-      payment_method,
-      payment_status,
+      status = 'pending',
+      payment_method = 'points',
+      payment_status = 'unpaid',
       total_amount
     } = transactionData;
 
-    const query = `
+    const userQuery = await client.query('SELECT points FROM account WHERE id = $1 FOR UPDATE', [user_id]);
+
+    if (userQuery.rows.length === 0) {
+      throw new Error('User tidak ditemukan');
+    }
+
+    const userPoints = userQuery.rows[0].points;
+
+    if (userPoints < total_amount) {
+      throw new Error(`Poin tidak mencukupi. Punya ${userPoints}, perlu ${total_amount}`);
+    }
+
+    // 2. Buat transaksi
+    const insertTransactionQuery = `
       INSERT INTO transaction (
         user_id, property_id, start_date, end_date, status, 
         payment_method, payment_status, total_amount
@@ -22,20 +40,34 @@ const transactionRepository = {
       RETURNING *
     `;
 
-    const values = [
+    const transactionValues = [
       user_id,
       property_id,
       start_date,
       end_date,
-      status || 'pending',
+      status,
       payment_method,
-      payment_status || 'unpaid',
+      'paid', // karena poin dipotong langsung
       total_amount
     ];
 
-    const result = await db.query(query, values);
-    return result.rows[0];
-  },
+    const transactionResult = await client.query(insertTransactionQuery, transactionValues);
+
+    // 3. Kurangi poin user
+    const updateUserPointsQuery = 'UPDATE account SET points = points - $1 WHERE id = $2';
+    await client.query(updateUserPointsQuery, [total_amount, user_id]);
+
+    await client.query('COMMIT'); // Sukses semua, commit
+
+    return transactionResult.rows[0];
+  } catch (err) {
+    await client.query('ROLLBACK'); // Ada error, rollback semua
+    throw err;
+  } finally {
+    client.release(); // Lepaskan koneksi kembali ke pool
+  }
+},
+
 
   async findAll() {
     const query = 'SELECT * FROM transaction ORDER BY id';
