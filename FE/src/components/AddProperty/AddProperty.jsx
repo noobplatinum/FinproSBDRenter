@@ -175,7 +175,7 @@ const AdminAddProperty = () => {
       console.log('Property details payload:', propertyDetails);
 
       const propertyResponse = await axios.post(
-        'http://localhost:3000/api/properties', // Sesuaikan URL API Anda
+        'https://finpro-sbd-renter-backend.vercel.app/api/properties', // Sesuaikan URL API Anda
         propertyDetails,
         {
           headers: {
@@ -200,7 +200,7 @@ const AdminAddProperty = () => {
         for (const facility of activeFacilities) {
           try {
             const facilityData = { property_id: propertyId, name: facility.name, condition: facility.condition };
-            await axios.post('http://localhost:3000/api/facilities', facilityData, { // Sesuaikan URL API
+            await axios.post('https://finpro-sbd-renter-backend.vercel.app/api/facilities', facilityData, { // Sesuaikan URL API
               headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
             });
           } catch (facilityError) {
@@ -223,7 +223,7 @@ const AdminAddProperty = () => {
           thumbnailFormData.append('image', mainImageFile); // Endpoint tunggal mungkin 'image'
           thumbnailFormData.append('is_thumbnail', 'true');
           try {
-            await axios.post('http://localhost:3000/api/images/upload', thumbnailFormData, { // Sesuaikan URL API
+            await axios.post('https://finpro-sbd-renter-backend.vercel.app/api/images/upload', thumbnailFormData, { // Sesuaikan URL API
               headers: { Authorization: `Bearer ${token}` } // Content-Type dihandle Axios
             });
           } catch (thumbErr) {
@@ -240,7 +240,7 @@ const AdminAddProperty = () => {
             multipleImagesFormData.append('images', file); // Endpoint multiple mungkin 'images'
           });
           try {
-            const imageUploadResponse = await axios.post('http://localhost:3000/api/images/upload/multiple', multipleImagesFormData, { // Sesuaikan URL API
+            const imageUploadResponse = await axios.post('https://finpro-sbd-renter-backend.vercel.app/api/images/upload/multiple', multipleImagesFormData, { // Sesuaikan URL API
               headers: { Authorization: `Bearer ${token}` }
             });
             if (imageUploadResponse.data.success) {

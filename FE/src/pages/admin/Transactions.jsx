@@ -39,16 +39,16 @@ const Transactions = () => {
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/api/transactions');
+        const response = await axios.get('https://finpro-sbd-renter-backend.vercel.app/api/transactions');
         if (response.data.success) {
           // Add property and user details to transactions
           const transactionsWithDetails = await Promise.all(
             response.data.data.map(async (transaction) => {
               try {
                 // Get property details
-                const propertyResponse = await axios.get(`http://localhost:3000/api/properties/${transaction.property_id}`);
+                const propertyResponse = await axios.get(`https://finpro-sbd-renter-backend.vercel.app/api/properties/${transaction.property_id}`);
                 // Get user details
-                const userResponse = await axios.get(`http://localhost:3000/api/accounts/${transaction.user_id}`);
+                const userResponse = await axios.get(`https://finpro-sbd-renter-backend.vercel.app/api/accounts/${transaction.user_id}`);
 
                 return {
                   ...transaction,

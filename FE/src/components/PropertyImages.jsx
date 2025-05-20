@@ -15,7 +15,7 @@ const PropertyImages = ({ propertyId }) => {
         setLoading(true);
         // Gunakan endpoint yang benar sesuai backend
         const response = await axios.get(
-          `http://localhost:3000/api/images/property/${propertyId}`
+          `https://finpro-sbd-renter-backend.vercel.app/api/images/property/${propertyId}`
         );
 
         if (response.data.success) {

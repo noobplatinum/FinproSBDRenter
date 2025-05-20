@@ -20,7 +20,7 @@ const PropertyCard = ({ property }) => {
     const fetchThumbnail = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:3000/api/images/property/${property.id}/thumbnail`
+          `https://finpro-sbd-renter-backend.vercel.app/api/images/property/${property.id}/thumbnail`
         );
         
         if (response.data.success && response.data.data) {
@@ -28,7 +28,7 @@ const PropertyCard = ({ property }) => {
         } else {
           // Jika tidak ada thumbnail khusus, coba ambil semua gambar
           const allImagesResponse = await axios.get(
-            `http://localhost:3000/api/images/property/${property.id}`
+            `https://finpro-sbd-renter-backend.vercel.app/api/images/property/${property.id}`
           );
           
           if (allImagesResponse.data.success && allImagesResponse.data.data.length > 0) {

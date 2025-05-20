@@ -59,7 +59,7 @@ const Properties = () => {
       const fetchPropertyDetail = async () => {
         try {
           setLoading(true);
-          const response = await axios.get(`http://localhost:3000/api/properties/${id}`);
+          const response = await axios.get(`https://finpro-sbd-renter-backend.vercel.app/api/properties/${id}`);
           
           if (response.data.success) {
             // Pastikan rating_avg adalah angka
@@ -73,7 +73,7 @@ const Properties = () => {
             
             // Coba mendapatkan thumbnail properti
             try {
-              const thumbnailResponse = await axios.get(`http://localhost:3000/api/images/property/${id}/thumbnail`);
+              const thumbnailResponse = await axios.get(`https://finpro-sbd-renter-backend.vercel.app/api/images/property/${id}/thumbnail`);
               if (thumbnailResponse.data.success && thumbnailResponse.data.data) {
                 setThumbnails({
                   [id]: thumbnailResponse.data.data.url
@@ -99,7 +99,7 @@ const Properties = () => {
       const fetchProperties = async () => {
         try {
           setLoading(true);
-          const response = await axios.get('http://localhost:3000/api/properties');
+          const response = await axios.get('https://finpro-sbd-renter-backend.vercel.app/api/properties');
           
           if (response.data.success) {
             // Pastikan setiap properti memiliki rating_avg yang valid
@@ -119,7 +119,7 @@ const Properties = () => {
             await Promise.allSettled(
               propertiesWithValidRatings.map(async (property) => {
                 try {
-                  const imageResponse = await axios.get(`http://localhost:3000/api/images/property/${property.id}/thumbnail`);
+                  const imageResponse = await axios.get(`https://finpro-sbd-renter-backend.vercel.app/api/images/property/${property.id}/thumbnail`);
                   if (imageResponse.data.success && imageResponse.data.data) {
                     thumbnailMap[property.id] = imageResponse.data.data.url;
                   }

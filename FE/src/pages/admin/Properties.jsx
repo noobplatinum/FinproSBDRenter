@@ -22,7 +22,7 @@ const AdminProperties = () => {
     const fetchProperties = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('http://localhost:3000/api/properties');
+        const response = await axios.get('https://finpro-sbd-renter-backend.vercel.app/api/properties');
         
         if (response.data.success) {
           setProperties(response.data.data);
@@ -54,7 +54,7 @@ const AdminProperties = () => {
   // Function untuk menghapus properti
   const handleDelete = async (id) => {
     try {
-      const response = await axios.delete(`http://localhost:3000/api/properties/${id}`);
+      const response = await axios.delete(`https://finpro-sbd-renter-backend.vercel.app/api/properties/${id}`);
       
       if (response.data.success) {
         setProperties(properties.filter(property => property.id !== id));

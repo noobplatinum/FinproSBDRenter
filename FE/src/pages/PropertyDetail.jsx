@@ -24,7 +24,7 @@ const PropertyDetail = () => {
         setLoading(true);
         // Pakai backticks untuk template literal
         const response = await axios.get(
-          `http://localhost:3000/api/properties/${id}`
+          `https://finpro-sbd-renter-backend.vercel.app/api/properties/${id}`
         );
 
         if (response.data.success) {

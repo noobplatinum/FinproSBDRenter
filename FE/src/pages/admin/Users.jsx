@@ -27,7 +27,7 @@ const Users = () => {
       }
 
       // Fetch users with pagination
-      const response = await axios.get(`http://localhost:3000/api/accounts`, {
+      const response = await axios.get(`https://finpro-sbd-renter-backend.vercel.app/api/accounts`, {
         headers: { Authorization: `Bearer ${token}` },
         params: { page: currentPage, limit: 10, search: searchTerm }
       });
@@ -65,7 +65,7 @@ const Users = () => {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:3000/api/accounts/${userToDelete.id}`, {
+      await axios.delete(`https://finpro-sbd-renter-backend.vercel.app/api/accounts/${userToDelete.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

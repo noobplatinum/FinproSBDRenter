@@ -112,13 +112,13 @@ const Dashboard = () => {
         try {
           // Mengambil data menggunakan endpoint yang tersedia
           const [accountsRes, propertiesRes, transactionsRes] = await Promise.all([
-            axios.get('http://localhost:3000/api/accounts', {
+            axios.get('https://finpro-sbd-renter-backend.vercel.app/api/accounts', {
               headers: { Authorization: `Bearer ${token}` }
             }),
-            axios.get('http://localhost:3000/api/properties', {
+            axios.get('https://finpro-sbd-renter-backend.vercel.app/api/properties', {
               headers: { Authorization: `Bearer ${token}` }
             }),
-            axios.get('http://localhost:3000/api/transactions', {
+            axios.get('https://finpro-sbd-renter-backend.vercel.app/api/transactions', {
               headers: { Authorization: `Bearer ${token}` }
             })
           ]);
@@ -192,7 +192,7 @@ const Dashboard = () => {
               try {
                 // Coba ambil detail properti
                 if (tx.property_id) {
-                  const propertyRes = await axios.get(`http://localhost:3000/api/properties/${tx.property_id}`, {
+                  const propertyRes = await axios.get(`https://finpro-sbd-renter-backend.vercel.app/api/properties/${tx.property_id}`, {
                     headers: { Authorization: `Bearer ${token}` }
                   });
                   if (propertyRes.data.success && propertyRes.data.data) {
@@ -202,7 +202,7 @@ const Dashboard = () => {
 
                 // Coba ambil detail user
                 if (tx.user_id) {
-                  const userRes = await axios.get(`http://localhost:3000/api/accounts/${tx.user_id}`, {
+                  const userRes = await axios.get(`https://finpro-sbd-renter-backend.vercel.app/api/accounts/${tx.user_id}`, {
                     headers: { Authorization: `Bearer ${token}` }
                   });
                   if (userRes.data.success && userRes.data.data) {
@@ -413,7 +413,7 @@ const Dashboard = () => {
           const popularPropertiesData = await Promise.all(
             popularPropertyIds.map(async (id) => {
               try {
-                const propertyRes = await axios.get(`http://localhost:3000/api/properties/${id}`, {
+                const propertyRes = await axios.get(`https://finpro-sbd-renter-backend.vercel.app/api/properties/${id}`, {
                   headers: { Authorization: `Bearer ${token}` }
                 });
 

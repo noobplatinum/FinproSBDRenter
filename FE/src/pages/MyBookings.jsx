@@ -28,7 +28,7 @@ const MyBookings = () => {
       setError(null);
       try {
         console.log(`Fetching bookings for user ID: ${user.id}`); // Log User ID
-        const response = await axios.get(`http://localhost:3000/api/transactions/user/${user.id}`, {
+        const response = await axios.get(`https://finpro-sbd-renter-backend.vercel.app/api/transactions/user/${user.id}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
           }
@@ -56,7 +56,7 @@ const MyBookings = () => {
                 };
               }
               try {
-                const propertyRes = await axios.get(`http://localhost:3000/api/properties/${booking.property_id}`, {
+                const propertyRes = await axios.get(`https://finpro-sbd-renter-backend.vercel.app/api/properties/${booking.property_id}`, {
                   headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                   }
@@ -178,7 +178,7 @@ const MyBookings = () => {
     if (!window.confirm('Apakah Anda yakin ingin membatalkan pemesanan ini?')) return;
 
     try {
-      const response = await axios.patch(`http://localhost:3000/api/transactions/${bookingId}/cancel`, {}, {
+      const response = await axios.patch(`https://finpro-sbd-renter-backend.vercel.app/api/transactions/${bookingId}/cancel`, {}, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }

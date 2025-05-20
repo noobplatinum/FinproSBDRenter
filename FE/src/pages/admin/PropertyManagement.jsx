@@ -14,7 +14,7 @@ const PropertyManagement = () => {
   useEffect(() => {
     const fetchProperties = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/api/properties');
+        const response = await axios.get('https://finpro-sbd-renter-backend.vercel.app/api/properties');
         if (response.data.success) {
           setProperties(response.data.data);
         }
@@ -32,7 +32,7 @@ const PropertyManagement = () => {
   const handleDeleteProperty = async (id) => {
     if (window.confirm('Are you sure you want to delete this property?')) {
       try {
-        const response = await axios.delete(`http://localhost:3000/api/properties/${id}`);
+        const response = await axios.delete(`https://finpro-sbd-renter-backend.vercel.app/api/properties/${id}`);
         if (response.data.success) {
           setProperties(properties.filter(property => property.id !== id));
           alert('Property deleted successfully!');

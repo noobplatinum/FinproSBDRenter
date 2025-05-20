@@ -97,7 +97,7 @@ const AdminEditProperty = () => {
     const propertyImages = Array.isArray(imagesData) ? imagesData.map(img => ({
       id: img.id,
       // Make sure we have a full URL here
-      url: img.url.startsWith('http') ? img.url : `http://localhost:3000${img.url}`,
+      url: img.url.startsWith('http') ? img.url : `https://finpro-sbd-renter-backend.vercel.app${img.url}`,
       isMain: img.is_thumbnail || false,
       isExisting: true,
       file: null
@@ -265,7 +265,7 @@ const handleSubmit = async (e) => {
     const token = localStorage.getItem('token');
     
     await axios.put(
-      `http://localhost:3000/api/properties/${propertyId}`,
+      `https://finpro-sbd-renter-backend.vercel.app/api/properties/${propertyId}`,
       {
         title: formData.title,
         description: formData.description,
@@ -291,7 +291,7 @@ const handleSubmit = async (e) => {
     for (const facility of activeFacilities) {
       if (facility.isExisting) {
         await axios.put(
-          `http://localhost:3000/api/facilities/${facility.id}`,
+          `https://finpro-sbd-renter-backend.vercel.app/api/facilities/${facility.id}`,
           {
             name: facility.name,
             condition: facility.condition
@@ -302,7 +302,7 @@ const handleSubmit = async (e) => {
         );
       } else {
         await axios.post(
-          'http://localhost:3000/api/facilities',
+          'https://finpro-sbd-renter-backend.vercel.app/api/facilities',
           {
             property_id: propertyId,
             name: facility.name,
@@ -318,7 +318,7 @@ const handleSubmit = async (e) => {
     if (imageIdsToRemove.length > 0) {
       for (const imageId of imageIdsToRemove) {
         try {
-          await axios.delete(`http://localhost:3000/api/images/${imageId}`, {
+          await axios.delete(`https://finpro-sbd-renter-backend.vercel.app/api/images/${imageId}`, {
             headers: { Authorization: `Bearer ${token}` }
           });
         } catch (err) {
@@ -338,7 +338,7 @@ const handleSubmit = async (e) => {
       });
       
       try {
-        await axios.post('http://localhost:3000/api/images/upload/multiple', imagesFormData, {
+        await axios.post('https://finpro-sbd-renter-backend.vercel.app/api/images/upload/multiple', imagesFormData, {
           headers: { 
             Authorization: `Bearer ${token}`,
             'Content-Type': 'multipart/form-data' 
@@ -353,12 +353,12 @@ const handleSubmit = async (e) => {
     const mainImage = images.find(img => img.isMain && img.isExisting);
     if (mainImage) {
       try {
-        await axios.options(`http://localhost:3000/api/properties/${propertyId}`, {
+        await axios.options(`https://finpro-sbd-renter-backend.vercel.app/api/properties/${propertyId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         
         await axios.put(
-          `http://localhost:3000/api/images/${mainImage.id}/set-thumbnail`,
+          `https://finpro-sbd-renter-backend.vercel.app/api/images/${mainImage.id}/set-thumbnail`,
           {},
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -367,7 +367,7 @@ const handleSubmit = async (e) => {
         
         try {
           await axios.put(
-            `http://localhost:3000/api/properties/${propertyId}`,
+            `https://finpro-sbd-renter-backend.vercel.app/api/properties/${propertyId}`,
             { thumbnail_id: mainImage.id },
             { headers: { Authorization: `Bearer ${token}` } }
           );
