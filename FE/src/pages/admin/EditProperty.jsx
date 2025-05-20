@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { FiSave, FiUpload, FiX, FiPlus, FiTrash2, FiInfo, FiLoader, FiArrowLeft } from 'react-icons/fi';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
-
+import api from '../../services/api';  
 const AdminEditProperty = () => {
   const navigate = useNavigate();
   const { id: propertyId } = useParams(); // Menggunakan propertyId agar lebih jelas
@@ -44,80 +44,74 @@ const AdminEditProperty = () => {
   // --- Fetch Property Details ---
   useEffect(() => {
     const fetchPropertyDetails = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        // 1. Fetch property data
-        const propertyResponse = await axios.get(`http://localhost:3000/api/properties/${propertyId}`);
-        const propertyData = propertyResponse.data?.data || propertyResponse.data; // Sesuaikan dengan struktur respons
-        console.log("Fetched Property Data:", propertyData);
+  setIsLoading(true);
+  setError(null);
+  try {
+    // 1. Fetch property data using your API service
+    const propertyResponse = await api.get(`/properties/${propertyId}`);
+    const propertyData = propertyResponse.data?.data || propertyResponse.data;
+    console.log("Fetched Property Data:", propertyData);
 
-        if (!propertyData) {
-          throw new Error("Property data not found in response.");
-        }
+    if (!propertyData) {
+      throw new Error("Property data not found in response.");
+    }
 
-        // 2. Fetch facilities data (asumsi endpoint mengembalikan array fasilitas untuk property_id)
-        // Sesuaikan endpoint jika perlu
-        const facilitiesResponse = await axios.get(`http://localhost:3000/api/facilities/property/${propertyId}`);
-        const facilitiesData = facilitiesResponse.data?.data || facilitiesResponse.data || []; // Berharap array
-        console.log("Fetched Facilities Data:", facilitiesData);
+    // 2. Fetch facilities data
+    const facilitiesResponse = await api.get(`/facilities/property/${propertyId}`);
+    const facilitiesData = facilitiesResponse.data?.data || facilitiesResponse.data || [];
+    console.log("Fetched Facilities Data:", facilitiesData);
 
+    // 3. Fetch images data
+    const imagesResponse = await api.get(`/images/property/${propertyId}`);
+    const imagesData = imagesResponse.data?.data || imagesResponse.data || [];
+    console.log("Fetched Images Data:", imagesData);
 
-        // 3. Fetch images data (asumsi endpoint mengembalikan array gambar untuk property_id)
-        // Sesuaikan endpoint jika perlu
-        const imagesResponse = await axios.get(`http://localhost:3000/api/images/property/${propertyId}`);
-        // Berharap struktur { success: true, data: [{id, url, is_thumbnail, property_id}, ...] }
-        const imagesData = imagesResponse.data?.data || imagesResponse.data || []; // Berharap array
-        console.log("Fetched Images Data:", imagesData);
+    // Set form data
+    setFormData({
+      title: propertyData.title || '',
+      description: propertyData.description || '',
+      price_per_night: propertyData.price_per_night || '',
+      location: propertyData.location || '',
+      category: propertyData.category || 'apartment',
+      max_guests: propertyData.max_guests || 2,
+      bedrooms: propertyData.bedrooms || 1,
+      bathrooms: propertyData.bathrooms || 1,
+      status: propertyData.status || 'active',
+      size: propertyData.size || '',
+      is_featured: propertyData.is_featured || false,
+    });
 
-        // Set form data
-        setFormData({
-          title: propertyData.title || '',
-          description: propertyData.description || '',
-          price_per_night: propertyData.price_per_night || '',
-          location: propertyData.location || '',
-          category: propertyData.category || 'apartment',
-          max_guests: propertyData.max_guests || 2,
-          bedrooms: propertyData.bedrooms || 1,
-          bathrooms: propertyData.bathrooms || 1,
-          status: propertyData.status || 'active', // Jika ada status di backend
-          size: propertyData.size || '',
-          is_featured: propertyData.is_featured || false, // Jika ada is_featured
-          // Pastikan semua field yang ada di state formData diisi dari propertyData
-        });
+    // Set facilities
+    const formattedFacilities = Array.isArray(facilitiesData) ? facilitiesData.map(fac => ({
+      id: fac.id,
+      property_id: fac.property_id,
+      name: fac.name,
+      condition: fac.condition || 'excellent',
+      available: true,
+      isExisting: true,
+    })) : [];
+    setFacilities(formattedFacilities);
+    setOriginalFacilities(JSON.parse(JSON.stringify(formattedFacilities)));
 
-        // Set facilities
-        // Backend mungkin tidak punya field 'available', jadi kita tambahkan di frontend
-        // Dan fasilitas yang ada dari DB pasti 'available' secara default di UI
-        const formattedFacilities = Array.isArray(facilitiesData) ? facilitiesData.map(fac => ({
-          id: fac.id, // ID dari database
-          property_id: fac.property_id,
-          name: fac.name,
-          condition: fac.condition || 'berfungsi',
-          available: true, // Anggap semua fasilitas yg ada di DB itu "dicentang" di UI
-          isExisting: true,
-        })) : [];
-        setFacilities(formattedFacilities);
-        setOriginalFacilities(JSON.parse(JSON.stringify(formattedFacilities))); // Deep copy
+    // Set images - ensure full URL paths
+    const propertyImages = Array.isArray(imagesData) ? imagesData.map(img => ({
+      id: img.id,
+      // Make sure we have a full URL here
+      url: img.url.startsWith('http') ? img.url : `http://localhost:3000${img.url}`,
+      isMain: img.is_thumbnail || false,
+      isExisting: true,
+      file: null
+    })) : [];
+    setImages(propertyImages);
 
-        // Set images
-        const propertyImages = Array.isArray(imagesData) ? imagesData.map(img => ({
-          id: img.id,         // ID dari database
-          url: img.url,       // URL gambar dari server
-          isMain: img.is_thumbnail || false, // `is_thumbnail` dari backend menentukan isMain
-          isExisting: true,   // Tandai sebagai gambar yang sudah ada
-          file: null          // Tidak ada file untuk gambar yang sudah ada
-        })) : [];
-        setImages(propertyImages);
-
-      } catch (err) {
-        console.error('Error fetching property details:', err.response?.data || err.message);
-        setError('Failed to fetch property details. Please try again later.');
-        toast.error('Failed to load property details.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  } catch (err) {
+    console.error('Error fetching property details:', err.response?.data || err.message);
+    setError('Failed to fetch property details. Please try again later.');
+    toast.error('Failed to load property details.');
+  } finally {
+    setIsLoading(false);
+  }
+};
 
     if (propertyId) {
       fetchPropertyDetails();
@@ -135,36 +129,41 @@ const AdminEditProperty = () => {
 
   // --- Handle Image Upload (untuk gambar BARU) ---
   const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
+  const files = Array.from(e.target.files);
 
-    if (images.length + files.length > 10) {
-      toast.error(`Maximum 10 images allowed. You currently have ${images.length} and are trying to add ${files.length}.`);
-      return;
-    }
-    const MAX_SIZE = 5 * 1024 * 1024; // 5MB
-    const oversizedFiles = files.filter(file => file.size > MAX_SIZE);
-    if (oversizedFiles.length > 0) {
-      toast.error(`${oversizedFiles.length} image(s) exceed the 5MB size limit.`);
-      return;
-    }
-    const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
-    const invalidFiles = files.filter(file => !validTypes.includes(file.type));
-    if (invalidFiles.length > 0) {
-      toast.error(`${invalidFiles.length} file(s) are not valid image types (allowed: JPG, PNG, WEBP).`);
-      return;
-    }
+  if (images.length + files.length > 10) {
+    toast.error(`Maximum 10 images allowed. You currently have ${images.length} and are trying to add ${files.length}.`);
+    return;
+  }
+  const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+  const oversizedFiles = files.filter(file => file.size > MAX_SIZE);
+  if (oversizedFiles.length > 0) {
+    toast.error(`${oversizedFiles.length} image(s) exceed the 5MB size limit.`);
+    return;
+  }
+  const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+  const invalidFiles = files.filter(file => !validTypes.includes(file.type));
+  if (invalidFiles.length > 0) {
+    toast.error(`${invalidFiles.length} file(s) are not valid image types (allowed: JPG, PNG, WEBP).`);
+    return;
+  }
 
-    const newImageObjects = files.map(file => ({
-      id: null, // Belum ada ID dari DB
-      url: URL.createObjectURL(file), // Buat preview URL
-      isMain: images.filter(img => img.isMain).length === 0 && images.length === 0, // Jadi main jika belum ada gambar atau belum ada yg main
-      isExisting: false, // Ini gambar baru
-      file: file // Simpan file objectnya
-    }));
+  // Create temporary entries with preview URLs
+  const newImageObjects = files.map(file => {
+    const previewUrl = URL.createObjectURL(file);
+    console.log("Created preview URL:", previewUrl);
+    return {
+      id: null,
+      url: previewUrl,
+      isMain: images.length === 0, // First image becomes main if no images exist
+      isExisting: false,
+      file: file
+    };
+  });
 
-    setImages(prev => [...prev, ...newImageObjects]);
-    setImageFilesToUpload(prev => [...prev, ...files]); // Tambahkan ke daftar file yang akan diupload
-  };
+  setImages(prev => [...prev, ...newImageObjects]);
+  setImageFilesToUpload(prev => [...prev, ...files]);
+};
 
   // --- Remove Image ---
   const removeImage = (indexToRemove) => {
@@ -635,42 +634,46 @@ const handleSubmit = async (e) => {
               </div>
               
               {images.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
-                  {images.map((image, index) => (
-                    <div
-                      key={index}
-                      className={`relative rounded-md overflow-hidden border-2 ${
-                        image.isMain ? 'border-blue-500' : 'border-gray-200'
-                      }`}
-                    >
-                      <img
-                        src={image.isExisting ? image.url : image.preview}
-                        alt={`Property ${index + 1}`}
-                        className="h-32 w-full object-cover cursor-pointer"
-                        onClick={() => setMainImage(index)}
-                      />
-                      {image.isMain && (
-                        <div className="absolute top-2 left-2 bg-blue-500 text-white px-2 py-1 rounded-md text-xs font-medium">
-                          Main
-                        </div>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => removeImage(index)}
-                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                      >
-                        <FiX size={14} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="border-2 border-dashed border-gray-300 rounded-md p-8 mt-4 text-center">
-                  <FiUpload className="mx-auto h-8 w-8 text-gray-400" />
-                  <p className="mt-2 text-sm text-gray-500">Upload at least one image of your property</p>
-                  <p className="text-xs text-gray-400 mt-1">PNG, JPG, WEBP up to 5MB</p>
-                </div>
-              )}
+  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
+    {images.map((image, index) => (
+      <div
+        key={index}
+        className={`relative rounded-md overflow-hidden border-2 ${
+          image.isMain ? 'border-blue-500' : 'border-gray-200'
+        }`}
+      >
+        <img
+          src={image.url}
+          alt={`Property ${index + 1}`}
+          className="h-32 w-full object-cover cursor-pointer"
+          onClick={() => setMainImage(index)}
+          onError={(e) => {
+            console.error("Image failed to load:", image.url);
+            e.target.src = 'https://via.placeholder.com/300x200?text=Image+Not+Available';
+          }}
+        />
+        {image.isMain && (
+          <div className="absolute top-2 left-2 bg-blue-500 text-white px-2 py-1 rounded-md text-xs font-medium">
+            Main
+          </div>
+        )}
+        <button
+          type="button"
+          onClick={() => removeImage(index)}
+          className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+        >
+          <FiX size={14} />
+        </button>
+      </div>
+    ))}
+  </div>
+) : (
+  <div className="border-2 border-dashed border-gray-300 rounded-md p-8 mt-4 text-center">
+    <FiUpload className="mx-auto h-8 w-8 text-gray-400" />
+    <p className="mt-2 text-sm text-gray-500">Upload at least one image of your property</p>
+    <p className="text-xs text-gray-400 mt-1">PNG, JPG, WEBP up to 5MB</p>
+  </div>
+)}
             </div>
             
             <div>

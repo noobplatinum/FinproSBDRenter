@@ -368,7 +368,7 @@ const MyBookings = () => {
                           </div>
                           <div>
                             <p className="text-xs text-black">Jumlah Tamu</p>
-                            <p className="font-medium text-sm text-black">{booking.guests_count || 0} orang</p>
+                            <p className="font-medium text-sm text-black">{booking.capacity || 0} orang</p>
                           </div>
                         </div>
                         
