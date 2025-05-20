@@ -10,16 +10,13 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user data exists in localStorage
     const storedUser = localStorage.getItem('user');
     const token = localStorage.getItem('token');
-    
+
     if (storedUser && token) {
       try {
         const userData = JSON.parse(storedUser);
         setUser(userData);
-        
-        // Set default auth header for future requests
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       } catch (error) {
         console.error('Failed to parse stored user data', error);
@@ -27,23 +24,22 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('token');
       }
     }
-    
+
     setLoading(false);
   }, []);
 
   const login = async (email, password) => {
     try {
       const response = await loginUser(email, password);
-      
+
       if (response.success) {
         const userData = response.data;
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
         localStorage.setItem('token', userData.token);
-        
-        // Set authorization header for future requests
+
         api.defaults.headers.common['Authorization'] = `Bearer ${userData.token}`;
-        
+
         return userData;
       } else {
         throw new Error(response.message || 'Login failed');
@@ -54,12 +50,16 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (userData) => {
+  // --- MODIFIED REGISTER FUNCTION ---
+  // Added an optional 'role' parameter, defaulting to 'user'
+  const register = async (userData, role = 'user') => {
     try {
-      console.log('Registering user with data:', userData);
-      const response = await registerUser(userData);
+      console.log('Registering user with data:', userData, ' and role:', role);
+      // Include the role in the data sent to the service
+      const dataToSend = { ...userData, role };
+      const response = await registerUser(dataToSend);
       console.log('Register response:', response);
-      
+
       if (response && response.success) {
         toast.success('Registrasi berhasil! Silakan login.');
         return response.data;
@@ -70,11 +70,12 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Register error full details:', error);
-      const errorMsg = error.response?.data?.message || 'Registrasi gagal, silakan coba lagi';
+      const errorMsg = error.response?.data?.message || error.message || 'Registrasi gagal, silakan coba lagi';
       toast.error(errorMsg);
       throw error;
     }
   };
+
 
   const logout = () => {
     setUser(null);
@@ -90,7 +91,6 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('user', JSON.stringify(updatedUser));
   };
 
-  // Tambahkan console.log untuk debugging
   const isAdmin = () => {
     console.log('Checking admin status, user:', user);
     return user && user.role === 'admin';

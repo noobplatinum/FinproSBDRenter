@@ -5,13 +5,11 @@ import { MdBed, MdShower } from 'react-icons/md'; // Alternatif dari react-icons
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import PropertyImages from '../components/PropertyImages';
-
 const PropertyDetail = () => {
   const { id } = useParams();
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
   // Format currency helper
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('id-ID', {
@@ -20,13 +18,15 @@ const PropertyDetail = () => {
       minimumFractionDigits: 0
     }).format(value);
   };
-
   useEffect(() => {
     const fetchPropertyDetails = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`http://localhost:3000/api/properties/${id}`);
-        
+        // Pakai backticks untuk template literal
+        const response = await axios.get(
+          `http://localhost:3000/api/properties/${id}`
+        );
+
         if (response.data.success) {
           setProperty(response.data.data);
         } else {
@@ -43,7 +43,6 @@ const PropertyDetail = () => {
 
     fetchPropertyDetails();
   }, [id]);
-
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-10">
@@ -56,7 +55,6 @@ const PropertyDetail = () => {
       </div>
     );
   }
-
   if (error || !property) {
     return (
       <div className="container mx-auto px-4 py-10">
@@ -85,14 +83,14 @@ const PropertyDetail = () => {
 
       {/* Property Images Component */}
       <PropertyImages propertyId={id} />
-      
+
       <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="md:col-span-2">
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-xl font-semibold mb-4">Deskripsi</h2>
             <p className="text-gray-700 leading-relaxed">{property.description}</p>
           </div>
-          
+
           {property.facilities && property.facilities.length > 0 && (
             <div className="bg-white p-6 rounded-lg shadow-md mt-6">
               <h2 className="text-xl font-semibold mb-4">Fasilitas</h2>
@@ -110,7 +108,7 @@ const PropertyDetail = () => {
             </div>
           )}
         </div>
-        
+
         <div>
           <div className="bg-white p-6 rounded-lg shadow-md sticky top-6">
             <div className="flex justify-between items-center mb-4">
@@ -118,7 +116,7 @@ const PropertyDetail = () => {
               <p className="text-2xl font-bold text-blue-600">{formatCurrency(property.price_per_night)}</p>
             </div>
             <p className="text-gray-500 text-right mb-4">per malam</p>
-            
+
             <div className="border-t border-gray-200 pt-4 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
@@ -149,8 +147,8 @@ const PropertyDetail = () => {
                 <span className="capitalize">{property.category || 'Properti'}</span>
               </div>
             </div>
-            
-            <Link 
+
+            <Link
               to={`/booking/${property.id}`}
               className="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg mt-6 transition-colors"
             >

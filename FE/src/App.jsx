@@ -22,7 +22,7 @@ import PropertyDetail from './pages/PropertyDetail'; // Import komponen Property
 // Admin Pages
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminProperties from './pages/admin/Properties';
-import AdminAddProperty from './pages/admin/AddProperty';
+import AdminAddProperty from './components/AddProperty/AddProperty';
 import AdminEditProperty from './pages/admin/EditProperty';
 import AdminUsers from './pages/admin/Users';
 import AdminTransactions from './pages/admin/Transactions';
