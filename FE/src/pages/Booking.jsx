@@ -286,7 +286,7 @@ const Booking = () => {
                     endDate={endDate}
                     minDate={new Date()} // Prevent booking in the past
                     dateFormat="dd/MM/yyyy"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-black bg-white text-black"
                   />
                   <p className="text-xs text-gray-500 mt-1">{formatDate(startDate)}</p>
                 </div>
@@ -300,7 +300,7 @@ const Booking = () => {
                     endDate={endDate}
                     minDate={new Date(startDate ? new Date(startDate).setDate(startDate.getDate() + 1) : new Date())} // End date must be at least 1 day after start date
                     dateFormat="dd/MM/yyyy"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-black"
                   />
                   <p className="text-xs text-gray-500 mt-1">{formatDate(endDate)}</p>
                 </div>
@@ -311,7 +311,7 @@ const Booking = () => {
                 <select
                   value={guests}
                   onChange={(e) => setGuests(parseInt(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-black"
                 >
                   {/* Ensure options don't exceed max_guests and handle 0 max_guests case */}
                    {property.max_guests > 0 ? (
