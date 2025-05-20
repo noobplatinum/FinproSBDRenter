@@ -419,8 +419,8 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"></path>
                   </svg>
                 ),
-                title: "Virtual Tour 360°",
-                description: "Jelajahi properti secara virtual dengan teknologi 360° yang imersif sebelum Anda memutuskan untuk datang.",
+                title: "Product Marketing",
+                description: "Sebarkan tawaran anda ke ratusan pengguna setia RenterIn.",
                 bgGradient: "from-rose-500 to-rose-600",
                 hoverGradient: "from-rose-600 to-rose-700"
               },

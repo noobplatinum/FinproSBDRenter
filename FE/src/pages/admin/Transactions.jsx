@@ -27,6 +27,15 @@ const Transactions = () => {
     failed: 'bg-red-100 text-red-800',
   };
 
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount).replace('IDR', 'Rp');
+  };
+
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
@@ -40,7 +49,7 @@ const Transactions = () => {
                 const propertyResponse = await axios.get(`http://localhost:3000/api/properties/${transaction.property_id}`);
                 // Get user details
                 const userResponse = await axios.get(`http://localhost:3000/api/accounts/${transaction.user_id}`);
-                
+
                 return {
                   ...transaction,
                   property: propertyResponse.data.data,
@@ -52,7 +61,7 @@ const Transactions = () => {
               }
             })
           );
-          
+
           setTransactions(transactionsWithDetails);
         }
       } catch (err) {
@@ -68,13 +77,13 @@ const Transactions = () => {
 
   // Filter and search transactions
   const filteredTransactions = transactions.filter(transaction => {
-    const matchesSearch = 
-      (transaction.property?.title?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-       transaction.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-       String(transaction.id).includes(searchTerm));
-       
+    const matchesSearch =
+      (transaction.property?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        transaction.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        String(transaction.id).includes(searchTerm));
+
     const matchesStatus = filterStatus === 'all' || transaction.status === filterStatus;
-    
+
     return matchesSearch && matchesStatus;
   });
 
@@ -91,10 +100,10 @@ const Transactions = () => {
     return new Date(dateString).toLocaleDateString('id-ID', options);
   };
 
-  // Calculate total amount
   const totalAmount = filteredTransactions.reduce((sum, transaction) => {
     if (transaction.payment_status === 'paid') {
-      return sum + (transaction.total_amount || 0);
+      const amount = parseFloat(transaction.total_amount) || 0;
+      return sum + amount;
     }
     return sum;
   }, 0);
@@ -111,8 +120,7 @@ const Transactions = () => {
         <h1 className="text-3xl font-bold text-gray-800">Transaction Management</h1>
         <div className="text-right">
           <p className="text-sm text-gray-500">Total Transactions: {filteredTransactions.length}</p>
-          <p className="text-lg font-semibold text-green-600">Total Revenue: Rp {totalAmount.toLocaleString('id-ID')}</p>
-        </div>
+          <p className="text-lg font-semibold text-green-600">Total Revenue: {formatCurrency(totalAmount)}</p>        </div>
       </div>
 
       {error && (
@@ -257,34 +265,31 @@ const Transactions = () => {
           <button
             onClick={() => paginate(currentPage - 1)}
             disabled={currentPage === 1}
-            className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
-              currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'
-            }`}
+            className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'
+              }`}
           >
             Previous
           </button>
-          
+
           {/* Page numbers */}
           {Array.from({ length: Math.ceil(filteredTransactions.length / itemsPerPage) }).map((_, index) => (
             <button
               key={index + 1}
               onClick={() => paginate(index + 1)}
-              className={`relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium ${
-                currentPage === index + 1 ? 'z-10 bg-blue-50 border-blue-500 text-blue-600' : 'text-gray-500 hover:bg-gray-50'
-              }`}
+              className={`relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium ${currentPage === index + 1 ? 'z-10 bg-blue-50 border-blue-500 text-blue-600' : 'text-gray-500 hover:bg-gray-50'
+                }`}
             >
               {index + 1}
             </button>
           ))}
-          
+
           <button
             onClick={() => paginate(currentPage + 1)}
             disabled={currentPage === Math.ceil(filteredTransactions.length / itemsPerPage)}
-            className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
-              currentPage === Math.ceil(filteredTransactions.length / itemsPerPage) 
-                ? 'text-gray-300 cursor-not-allowed' 
+            className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${currentPage === Math.ceil(filteredTransactions.length / itemsPerPage)
+                ? 'text-gray-300 cursor-not-allowed'
                 : 'text-gray-500 hover:bg-gray-50'
-            }`}
+              }`}
           >
             Next
           </button>

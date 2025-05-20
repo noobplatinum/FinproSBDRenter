@@ -1,19 +1,19 @@
 import { useState, useEffect, useContext } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { FiCalendar, FiUsers, FiCheckCircle, FiDollarSign } from 'react-icons/fi'; 
+import { FiCalendar, FiUsers, FiCheckCircle, FiDollarSign } from 'react-icons/fi';
 // import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import { AuthContext } from '../context/AuthContext';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
-import api from '../services/api'; 
+import api from '../services/api';
 
 const Booking = () => {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useContext(AuthContext); 
-
+  const { user } = useContext(AuthContext);
+  const [thumbnail, setThumbnail] = useState(null);
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -34,6 +34,31 @@ const Booking = () => {
     }
   }, [user, navigate]); // Added user and navigate to dependency array
 
+  useEffect(() => {
+    const fetchThumbnail = async () => {
+      if (!property || !property.id) return;
+
+      try {
+        // Coba fetch thumbnail dulu
+        const thumbnailResponse = await api.get(`/images/property/${property.id}/thumbnail`);
+
+        if (thumbnailResponse.data.success && thumbnailResponse.data.data) {
+          setThumbnail(thumbnailResponse.data.data.url);
+        } else { // Fallback, get semua image
+          const imagesResponse = await api.get(`/images/property/${property.id}`);
+
+          if (imagesResponse.data.success && imagesResponse.data.data.length > 0) {
+            setThumbnail(imagesResponse.data.data[0].url);
+          }
+        }
+      } catch (err) {
+        console.error('Could not load property thumbnail:', err);
+      }
+    };
+
+    fetchThumbnail();
+  }, [property]);
+
   // Fetch property details
   useEffect(() => {
     if (!user) return; // Don't fetch if user is not logged in
@@ -45,15 +70,15 @@ const Booking = () => {
           setProperty(response.data.data);
 
           setEndDate(prev => {
-             const currentEndDate = new Date(prev);
-             // Ensure end date is at least 1 day after start date
-             const minPossibleEndDate = new Date(startDate);
-             minPossibleEndDate.setDate(startDate.getDate() + 1);
+            const currentEndDate = new Date(prev);
+            // Ensure end date is at least 1 day after start date
+            const minPossibleEndDate = new Date(startDate);
+            minPossibleEndDate.setDate(startDate.getDate() + 1);
 
-             if (currentEndDate <= startDate) {
-                 return minPossibleEndDate;
-             }
-              return currentEndDate;
+            if (currentEndDate <= startDate) {
+              return minPossibleEndDate;
+            }
+            return currentEndDate;
           });
 
         } else {
@@ -61,14 +86,14 @@ const Booking = () => {
         }
       } catch (error) {
         console.error('Error fetching property:', error);
-        setError('Tidak dapat memuat data properti. Pastikan properti tersedia.'); 
+        setError('Tidak dapat memuat data properti. Pastikan properti tersedia.');
       } finally {
         setLoading(false);
       }
     };
 
     fetchPropertyDetails();
-  }, [id, user, startDate]); 
+  }, [id, user, startDate]);
 
   // Calculate number of nights
   const calculateNights = () => {
@@ -76,7 +101,7 @@ const Booking = () => {
     const start = startDate instanceof Date && !isNaN(startDate) ? startDate : new Date();
     const end = endDate instanceof Date && !isNaN(endDate) ? endDate : new Date(new Date().setDate(new Date().getDate() + 1));
 
-     if (start >= end) return 1; // At least 1 night if dates are same or invalid range
+    if (start >= end) return 1; // At least 1 night if dates are same or invalid range
 
     const diffTime = Math.abs(end.getTime() - start.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -92,8 +117,8 @@ const Booking = () => {
 
   // Calculate service fee (10% of subtotal)
   const calculateServiceFee = () => {
-     const subtotal = calculateSubtotal();
-     return subtotal * 0.1; // Assuming 10% service fee
+    const subtotal = calculateSubtotal();
+    return subtotal * 0.1; // Assuming 10% service fee
   };
 
   // Calculate total points required
@@ -111,12 +136,12 @@ const Booking = () => {
     }).format(amount);
   };
 
-   // Format points (display as number)
+  // Format points (display as number)
   const formatPoints = (amount) => {
-      if (typeof amount !== 'number') return '0';
-      return new Intl.NumberFormat('id-ID', {
-           minimumFractionDigits: 0
-      }).format(amount);
+    if (typeof amount !== 'number') return '0';
+    return new Intl.NumberFormat('id-ID', {
+      minimumFractionDigits: 0
+    }).format(amount);
   }
 
 
@@ -133,28 +158,28 @@ const Booking = () => {
 
     // --- Validate Form (Check Points) ---
     if (!user) {
-        toast.error('Anda harus login untuk melakukan pemesanan.');
-        navigate('/login');
-        return;
+      toast.error('Anda harus login untuk melakukan pemesanan.');
+      navigate('/login');
+      return;
     }
 
-     if (!property) {
-         toast.error('Data properti tidak lengkap.');
-         return;
-     }
+    if (!property) {
+      toast.error('Data properti tidak lengkap.');
+      return;
+    }
 
     const totalPointsRequired = calculateTotalPoints();
 
     // Check if user has enough points
     if (user.points < totalPointsRequired) {
-        toast.error(`Poin Anda (${formatPoints(user.points)} poin) tidak mencukupi. Dibutuhkan ${formatPoints(totalPointsRequired)} poin.`);
-        return;
+      toast.error(`Poin Anda (${formatPoints(user.points)} poin) tidak mencukupi. Dibutuhkan ${formatPoints(totalPointsRequired)} poin.`);
+      return;
     }
 
     // Basic date/guest validation before processing
     if (calculateNights() <= 0 || guests <= 0 || guests > property.max_guests) {
-        toast.error('Periksa kembali tanggal pemesanan dan jumlah tamu.');
-        return;
+      toast.error('Periksa kembali tanggal pemesanan dan jumlah tamu.');
+      return;
     }
 
 
@@ -164,14 +189,14 @@ const Booking = () => {
 
       const response = await api.post('/transactions', {
         property_id: property.id,
-        user_id: user.id, 
+        user_id: user.id,
         start_date: startDate.toISOString().split('T')[0],
         end_date: endDate.toISOString().split('T')[0],
-        guests_count: guests, 
-        total_amount: calculateTotalPoints(), 
-        payment_method: 'points', 
-        status: 'confirmed', 
-        payment_status: 'paid' 
+        guests_count: guests,
+        total_amount: calculateTotalPoints(),
+        payment_method: 'points',
+        status: 'confirmed',
+        payment_status: 'paid'
       }, {
       });
 
@@ -179,18 +204,18 @@ const Booking = () => {
         toast.success('Pemesanan berhasil! Poin Anda telah terpotong.');
         navigate('/booking-success', {
           state: {
-            transactionId: response.data.data.id, 
+            transactionId: response.data.data.id,
             propertyName: property.title,
             checkInDate: startDate,
             checkOutDate: endDate,
-            totalAmount: calculateTotalPoints(), 
+            totalAmount: calculateTotalPoints(),
             nights: calculateNights(),
             guests: guests,
-            paymentMethod: 'Poin' 
+            paymentMethod: 'Poin'
           }
         });
       } else {
-         throw new Error(response.data.message || 'Failed to process booking');
+        throw new Error(response.data.message || 'Failed to process booking');
       }
     } catch (error) {
       console.error('Booking error:', error);
@@ -225,9 +250,9 @@ const Booking = () => {
     );
   }
 
-   if (!user || !property) {
-       return <div className="flex justify-center items-center min-h-screen text-gray-600">Memuat...</div>;
-   }
+  if (!user || !property) {
+    return <div className="flex justify-center items-center min-h-screen text-gray-600">Memuat...</div>;
+  }
 
 
   return (
@@ -242,9 +267,9 @@ const Booking = () => {
             <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
               <div className="flex gap-4">
                 <div className="w-24 h-24 bg-gray-200 rounded-md overflow-hidden">
-                  {property.thumbnail ? (
+                  {thumbnail ? (
                     <img
-                      src={property.thumbnail}
+                      src={thumbnail}
                       alt={property.title}
                       className="w-full h-full object-cover"
                     />
@@ -314,15 +339,15 @@ const Booking = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-black"
                 >
                   {/* Ensure options don't exceed max_guests and handle 0 max_guests case */}
-                   {property.max_guests > 0 ? (
-                       [...Array(property.max_guests)].map((_, i) => (
-                        <option key={i + 1} value={i + 1}>
-                          {i + 1} {i + 1 > 1 ? 'tamu' : 'tamu'}
-                        </option>
-                      ))
-                   ) : (
-                        <option value="1">1 tamu</option> // Default if max_guests is 0 or not set
-                   )}
+                  {property.max_guests > 0 ? (
+                    [...Array(property.max_guests)].map((_, i) => (
+                      <option key={i + 1} value={i + 1}>
+                        {i + 1} {i + 1 > 1 ? 'tamu' : 'tamu'}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="1">1 tamu</option> // Default if max_guests is 0 or not set
+                  )}
                 </select>
               </div>
             </div>
@@ -336,13 +361,13 @@ const Booking = () => {
             <div className="bg-white p-6 rounded-lg shadow-sm sticky top-24">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Ringkasan Biaya & Poin</h3> {/* Updated title */}
 
-               {/* Display User's Current Points */}
-               {user && (
-                   <div className="mb-4 text-center p-3 bg-blue-50 rounded-md border border-blue-100">
-                       <p className="text-sm text-gray-600 mb-1">Poin Anda Saat Ini:</p>
-                       <p className="text-xl font-bold text-blue-700">{formatPoints(user.points)} <span className="text-sm">poin</span></p>
-                   </div>
-               )}
+              {/* Display User's Current Points */}
+              {user && (
+                <div className="mb-4 text-center p-3 bg-blue-50 rounded-md border border-blue-100">
+                  <p className="text-sm text-gray-600 mb-1">Poin Anda Saat Ini:</p>
+                  <p className="text-xl font-bold text-blue-700">{formatPoints(user.points)} <span className="text-sm">poin</span></p>
+                </div>
+              )}
 
 
               <div className="space-y-3 mb-6">
@@ -367,10 +392,10 @@ const Booking = () => {
 
               {/* Submit Button */}
               <button
-                type="button" 
+                type="button"
                 onClick={handleSubmit}
-                disabled={isProcessing || !user || !property || calculateTotalPoints() <= 0} 
-                className="w-full py-3 px-4 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed flex justify-center items-center" 
+                disabled={isProcessing || !user || !property || calculateTotalPoints() <= 0}
+                className="w-full py-3 px-4 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed flex justify-center items-center"
               >
                 {isProcessing ? (
                   <>
@@ -381,7 +406,7 @@ const Booking = () => {
                     Memproses...
                   </>
                 ) : (
-                    `Bayar dengan ${formatPoints(calculateTotalPoints())} Poin` 
+                  `Bayar dengan ${formatPoints(calculateTotalPoints())} Poin`
                 )}
               </button>
 

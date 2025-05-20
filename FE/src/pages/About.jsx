@@ -32,29 +32,28 @@ const About = () => {
   const tabs = [
     { id: 'story', label: 'Tentang Kami' },
     { id: 'mission', label: 'Visi & Misi' },
-    { id: 'team', label: 'Tim Kami' },
+    { id: 'team', label: 'Kelompok 11' },
   ];
 
   const teamMembers = [
     { 
-      name: 'Anggota 1', 
+      name: 'Wilman', 
       image: '',
     },
     { 
-      name: 'Anggota 2', 
+      name: 'David', 
       image: '',
     },
     { 
-      name: 'Anggota 3', 
+      name: 'Daffa', 
       image: '',
     },
     { 
-      name: 'Anggota 4', 
+      name: 'Dzaky', 
       image: '',
     },
   ];
 
-  // Animation variants
   const pageTransition = {
     initial: (direction) => ({
       opacity: 0,
@@ -101,7 +100,6 @@ const About = () => {
     }
   };
 
-  // Render functions for different tabs with enhanced animations
   const renderStory = () => (
     <motion.div 
       custom={direction}
@@ -225,7 +223,7 @@ const About = () => {
             <h3 className="text-3xl font-bold">Visi Kami</h3>
           </div>
           <p className="text-lg leading-relaxed mb-8">
-            Menjadi platform penyewaan hunian terdepan di Indonesia yang mengubah cara orang menemukan dan menyewa tempat tinggal, memberikan akses hunian berkualitas untuk semua kalangan.
+            Menjadi platform penyewaan properti terdepan di Indonesia yang mengubah cara orang menemukan dan menyewa tempat tinggal, memberikan akses hunian berkualitas untuk semua kalangan.
           </p>
           
           <div className="flex items-center mb-4">
@@ -337,7 +335,7 @@ const About = () => {
       >
         <h3 className="text-3xl font-bold text-gray-800 mb-4">Tim RenterIn</h3>
         <p className="text-lg text-gray-600">
-          Kami adalah tim yang berdedikasi untuk mengubah cara orang menemukan hunian, dengan menggabungkan keahlian teknologi dan pemahaman akan kebutuhan pengguna.
+          Kami berdedikasi untuk mengubah cara menemukan hunian, dengan menggabungkan teknologi dan pemahaman akan kebutuhan pengguna.
         </p>
       </motion.div>
       
@@ -413,7 +411,6 @@ const About = () => {
     </motion.div>
   );
 
-  // Render content based on active tab with enhanced animations
   const renderContent = () => {
     return (
       <AnimatePresence mode="wait" custom={direction}>
@@ -436,9 +433,7 @@ const About = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero Section with Parallax Effect */}
       <section className="relative py-20 px-4 bg-gradient-to-br from-blue-50 to-indigo-50 overflow-hidden">
-        {/* Animated background elements */}
         <motion.div 
           className="absolute inset-0 z-0"
           initial={{ opacity: 0 }}
@@ -516,7 +511,6 @@ const About = () => {
             </motion.p>
           </motion.div>
           
-          {/* Animated Tabs - Improved with Lighter Colors */}
           <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}

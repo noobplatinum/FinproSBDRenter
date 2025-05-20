@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { 
-  FiUsers, 
-  FiHome, 
-  FiDollarSign, 
-  FiStar, 
-  FiShoppingBag, 
-  FiTrendingUp, 
+import {
+  FiUsers,
+  FiHome,
+  FiDollarSign,
+  FiStar,
+  FiShoppingBag,
+  FiTrendingUp,
+  FiTrendingDown,
   FiCalendar,
   FiPlus
 } from 'react-icons/fi';
@@ -33,11 +34,14 @@ const Dashboard = () => {
     totalRevenue: 0,
     averageRating: 0,
   });
-  
+
   const [recentTransactions, setRecentTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+  const calculateGrowthRate = (current, previous) => {
+    if (previous === 0) return 0;
+    return ((current - previous) / previous) * 100;
+  };
   const [monthlyRevenue, setMonthlyRevenue] = useState({
     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
     datasets: [
@@ -50,7 +54,7 @@ const Dashboard = () => {
       }
     ]
   });
-  
+
   const [propertyTypes, setPropertyTypes] = useState({
     labels: ['Apartment', 'House', 'Villa', 'Kost', 'Cottage'],
     datasets: [
@@ -81,7 +85,7 @@ const Dashboard = () => {
       }
     ]
   });
-
+  const [yearOverYearGrowth, setYearOverYearGrowth] = useState(0);
   const [bookingStats, setBookingStats] = useState({
     totalBookings: 0,
     totalBookingsChange: 0,
@@ -98,7 +102,7 @@ const Dashboard = () => {
       try {
         setLoading(true);
         console.log('Fetching dashboard data...');
-        
+
         // Verifikasi token admin
         const token = localStorage.getItem('token');
         if (!token) {
@@ -127,23 +131,23 @@ const Dashboard = () => {
           // Hitung statistik dasar
           const totalUsers = accounts.length;
           const totalProperties = properties.length;
-          
+
           // Hitung total pendapatan dari transaksi
-          const completedTransactions = transactions.filter(t => 
+          const completedTransactions = transactions.filter(t =>
             t.status === 'completed' || t.payment_status === 'paid'
           );
-          
+
           const totalRevenue = completedTransactions.reduce(
-            (sum, t) => sum + (t.total_amount || 0), 
+            (sum, t) => sum + (t.total_amount || 0),
             0
           );
-          
+
           // Hitung rating rata-rata
           const propertiesWithRating = properties.filter(p => p.rating_avg);
           const averageRating = propertiesWithRating.length > 0
             ? propertiesWithRating.reduce((sum, p) => sum + parseFloat(p.rating_avg || 0), 0) / propertiesWithRating.length
             : 0;
-          
+
           // Set statistik dasar
           setStats({
             totalUsers,
@@ -156,7 +160,29 @@ const Dashboard = () => {
           const sortedTransactions = [...transactions]
             .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
             .slice(0, 5);
+          const calculateYearOverYearGrowth = () => {
+            const currentYear = new Date().getFullYear();
+            const lastYear = currentYear - 1;
 
+            const currentYearTransactions = transactions.filter(tx => {
+              return new Date(tx.created_at).getFullYear() === currentYear &&
+                (tx.status === 'completed' || tx.payment_status === 'paid');
+            });
+
+            const lastYearTransactions = transactions.filter(tx => {
+              return new Date(tx.created_at).getFullYear() === lastYear &&
+                (tx.status === 'completed' || tx.payment_status === 'paid');
+            });
+
+            const currentYearRevenue = currentYearTransactions.reduce((sum, tx) => sum + (tx.total_amount || 0), 0);
+            const lastYearRevenue = lastYearTransactions.reduce((sum, tx) => sum + (tx.total_amount || 0), 0);
+
+            const yoyGrowth = calculateGrowthRate(currentYearRevenue, lastYearRevenue);
+            setYearOverYearGrowth(parseFloat(yoyGrowth.toFixed(1)));
+          };
+
+          // Call the function
+          calculateYearOverYearGrowth();
           // Siapkan data untuk transaksi terbaru
           const recentTxs = await Promise.all(
             sortedTransactions.map(async (tx) => {
@@ -202,22 +228,22 @@ const Dashboard = () => {
 
           // Hitung data booking
           const totalBookings = transactions.length;
-          const paidBookings = transactions.filter(t => 
+          const paidBookings = transactions.filter(t =>
             t.status === 'completed' || t.payment_status === 'paid'
           ).length;
-          
+
           // Occupancy rate (hanya untuk demo)
           const occupancyRate = (paidBookings / Math.max(1, totalProperties)) * 100;
-          
+
           // Nilai booking rata-rata
-          const avgBookingValue = completedTransactions.length > 0 
-            ? completedTransactions.reduce((sum, t) => sum + (t.total_amount || 0), 0) / completedTransactions.length 
+          const avgBookingValue = completedTransactions.length > 0
+            ? completedTransactions.reduce((sum, t) => sum + (t.total_amount || 0), 0) / completedTransactions.length
             : 0;
-          
+
           // Hitung durasi rata-rata (dalam hari) berdasarkan checkin/checkout
           let totalNights = 0;
           let bookingsWithDates = 0;
-          
+
           transactions.forEach(tx => {
             if (tx.checkin_date && tx.checkout_date) {
               const checkin = new Date(tx.checkin_date);
@@ -230,31 +256,109 @@ const Dashboard = () => {
               }
             }
           });
-          
+
           const avgLengthOfStay = bookingsWithDates > 0 ? totalNights / bookingsWithDates : 3; // Default: 3 hari
-          
+
           // Set statistik booking
+          const currentDate = new Date();
+          const previousMonthDate = new Date();
+          previousMonthDate.setMonth(previousMonthDate.getMonth() - 1);
+
+          // Filter transactions for current month and previous month
+          const currentMonthTransactions = transactions.filter(tx => {
+            const txDate = new Date(tx.created_at);
+            return txDate.getMonth() === currentDate.getMonth() &&
+              txDate.getFullYear() === currentDate.getFullYear();
+          });
+
+          const previousMonthTransactions = transactions.filter(tx => {
+            const txDate = new Date(tx.created_at);
+            return txDate.getMonth() === previousMonthDate.getMonth() &&
+              txDate.getFullYear() === previousMonthDate.getFullYear();
+          });
+
+          // Calculate booking metrics
+          const currentMonthBookings = currentMonthTransactions.length;
+          const previousMonthBookings = previousMonthTransactions.length;
+          const bookingsChange = calculateGrowthRate(currentMonthBookings, previousMonthBookings);
+
+          // Calculate occupancy rates
+          const currentOccupancy = currentMonthTransactions.length / Math.max(1, totalProperties) * 100;
+          const previousOccupancy = previousMonthTransactions.length / Math.max(1, totalProperties) * 100;
+          const occupancyChange = calculateGrowthRate(currentOccupancy, previousOccupancy);
+
+          // Calculate average booking values
+          const currentCompletedTxs = currentMonthTransactions.filter(t =>
+            t.status === 'completed' || t.payment_status === 'paid'
+          );
+          const previousCompletedTxs = previousMonthTransactions.filter(t =>
+            t.status === 'completed' || t.payment_status === 'paid'
+          );
+
+          const currentAvgValue = currentCompletedTxs.length > 0
+            ? currentCompletedTxs.reduce((sum, t) => sum + (t.total_amount || 0), 0) / currentCompletedTxs.length
+            : 0;
+          const previousAvgValue = previousCompletedTxs.length > 0
+            ? previousCompletedTxs.reduce((sum, t) => sum + (t.total_amount || 0), 0) / previousCompletedTxs.length
+            : 0;
+          const valueChange = calculateGrowthRate(currentAvgValue, previousAvgValue);
+
+          // Calculate average length of stay
+          let currentTotalNights = 0, currentBookingsWithDates = 0;
+          let previousTotalNights = 0, previousBookingsWithDates = 0;
+
+          currentMonthTransactions.forEach(tx => {
+            if (tx.checkin_date && tx.checkout_date) {
+              const checkin = new Date(tx.checkin_date);
+              const checkout = new Date(tx.checkout_date);
+              if (checkout > checkin) {
+                const diffTime = Math.abs(checkout - checkin);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                currentTotalNights += diffDays;
+                currentBookingsWithDates++;
+              }
+            }
+          });
+
+          previousMonthTransactions.forEach(tx => {
+            if (tx.checkin_date && tx.checkout_date) {
+              const checkin = new Date(tx.checkin_date);
+              const checkout = new Date(tx.checkout_date);
+              if (checkout > checkin) {
+                const diffTime = Math.abs(checkout - checkin);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                previousTotalNights += diffDays;
+                previousBookingsWithDates++;
+              }
+            }
+          });
+
+          const currentAvgStay = currentBookingsWithDates > 0 ? currentTotalNights / currentBookingsWithDates : 0;
+          const previousAvgStay = previousBookingsWithDates > 0 ? previousTotalNights / previousBookingsWithDates : 0;
+          const stayChange = calculateGrowthRate(currentAvgStay, previousAvgStay);
+
+          // Update booking stats with real calculated values
           setBookingStats({
             totalBookings,
-            totalBookingsChange: 5.2, // Demo value
+            totalBookingsChange: parseFloat(bookingsChange.toFixed(1)),
             occupancyRate: parseFloat(occupancyRate.toFixed(1)),
-            occupancyRateChange: 2.1, // Demo value
+            occupancyRateChange: parseFloat(occupancyChange.toFixed(1)),
             avgBookingValue,
-            avgBookingValueChange: 1.5, // Demo value
+            avgBookingValueChange: parseFloat(valueChange.toFixed(1)),
             avgLengthOfStay,
-            avgLengthOfStayChange: 0.2 // Demo value
+            avgLengthOfStayChange: parseFloat(stayChange.toFixed(1))
           });
 
           // Generate data pendapatan bulanan berdasarkan transaksi yang ada
           const monthlyRevenueData = Array(12).fill(0);
-          
+
           completedTransactions.forEach(tx => {
             if (tx.created_at) {
               const month = new Date(tx.created_at).getMonth();
               monthlyRevenueData[month] += (tx.total_amount || 0);
             }
           });
-          
+
           setMonthlyRevenue({
             labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
             datasets: [{
@@ -272,10 +376,10 @@ const Dashboard = () => {
             const type = p.type || 'Other';
             typeCount[type] = (typeCount[type] || 0) + 1;
           });
-          
+
           const propertyTypeLabels = Object.keys(typeCount);
           const propertyTypeData = propertyTypeLabels.map(type => typeCount[type]);
-          
+
           setPropertyTypes({
             labels: propertyTypeLabels,
             datasets: [{
@@ -300,19 +404,19 @@ const Dashboard = () => {
               propertyBookingCount[tx.property_id] = (propertyBookingCount[tx.property_id] || 0) + 1;
             }
           });
-          
+
           // Mendapatkan properti dengan booking terbanyak
           const popularPropertyIds = Object.keys(propertyBookingCount)
             .sort((a, b) => propertyBookingCount[b] - propertyBookingCount[a])
             .slice(0, 5);
-          
+
           const popularPropertiesData = await Promise.all(
             popularPropertyIds.map(async (id) => {
               try {
                 const propertyRes = await axios.get(`http://localhost:3000/api/properties/${id}`, {
                   headers: { Authorization: `Bearer ${token}` }
                 });
-                
+
                 if (propertyRes.data.success && propertyRes.data.data) {
                   return {
                     id,
@@ -323,7 +427,7 @@ const Dashboard = () => {
               } catch (error) {
                 console.error(`Error fetching property ${id}:`, error);
               }
-              
+
               return {
                 id,
                 title: `Property #${id}`,
@@ -331,7 +435,7 @@ const Dashboard = () => {
               };
             })
           );
-          
+
           setPopularPropertiesChart({
             labels: popularPropertiesData.map(p => p.title),
             datasets: [{
@@ -350,7 +454,7 @@ const Dashboard = () => {
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
         setError(error.message || "Failed to load dashboard data");
-        
+
         // Fallback ke data dummy jika API gagal
         useDummyData();
       } finally {
@@ -361,7 +465,7 @@ const Dashboard = () => {
     // Helper function untuk data dummy
     const useDummyData = () => {
       console.log("Using fallback dummy data");
-      
+
       // Data dummy yang sudah ada
       setStats({
         totalUsers: 1245,
@@ -465,8 +569,8 @@ const Dashboard = () => {
     <div className="flex justify-center items-center min-h-screen">
       <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
         <p>{error}</p>
-        <button 
-          onClick={() => window.location.reload()} 
+        <button
+          onClick={() => window.location.reload()}
           className="mt-2 bg-red-600 text-white px-3 py-1 rounded"
         >
           Retry
@@ -540,13 +644,19 @@ const Dashboard = () => {
         <div className="bg-white p-6 rounded-xl shadow-md">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold text-gray-800">Monthly Revenue</h2>
-            <div className="flex items-center text-green-600">
-              <FiTrendingUp size={18} className="mr-1" />
-              <span className="text-sm font-medium">+12.5% vs last year</span>
+            <div className={`flex items-center ${yearOverYearGrowth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {yearOverYearGrowth >= 0 ? (
+                <FiTrendingUp size={18} className="mr-1" />
+              ) : (
+                <FiTrendingDown size={18} className="mr-1" />
+              )}
+              <span className="text-sm font-medium">
+                {yearOverYearGrowth > 0 ? '+' : ''}{yearOverYearGrowth}% vs last year
+              </span>
             </div>
           </div>
           <div className="h-80">
-            <Line 
+            <Line
               data={monthlyRevenue}
               options={{
                 responsive: true,
@@ -568,12 +678,12 @@ const Dashboard = () => {
             />
           </div>
         </div>
-        
+
         {/* Property Types Distribution */}
         <div className="bg-white p-6 rounded-xl shadow-md">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">Property Types Distribution</h2>
           <div className="flex justify-center h-80">
-            <Doughnut 
+            <Doughnut
               data={propertyTypes}
               options={{
                 responsive: true,
@@ -592,7 +702,7 @@ const Dashboard = () => {
         <div className="bg-white p-6 rounded-xl shadow-md">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">Most Booked Properties</h2>
           <div className="h-80">
-            <Bar 
+            <Bar
               data={popularPropertiesChart}
               options={{
                 responsive: true,
