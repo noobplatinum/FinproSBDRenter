@@ -434,7 +434,7 @@ const Profile = () => {
                 {!isEditingProfile ? (
                   <button
                     onClick={() => setIsEditingProfile(true)}
-                    className="text-blue-600 hover:text-blue-800 flex items-center"
+                    className="text-blue-600 hover:text-blue-800 flex items-center bg-white"
                   >
                     <FiEdit2 className="mr-1" /> Edit
                   </button>
@@ -595,11 +595,11 @@ const Profile = () => {
             {/* Change Password Section */}
             <div className="border-t border-gray-200 pt-8">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-semibold text-gray-900">Keamanan Akun</h3>
+                <h3 className="text-xl font-semibold text-gray-900 ">Keamanan Akun</h3>
                 {!isChangingPassword ? (
                   <button
                     onClick={() => setIsChangingPassword(true)}
-                    className="text-blue-600 hover:text-blue-800 flex items-center"
+                    className="text-blue-600 hover:text-blue-800 flex items-center bg-white"
                   >
                     <FiLock className="mr-1" /> Ubah Password
                   </button>

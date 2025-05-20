@@ -278,8 +278,8 @@ const MyBookings = () => {
               onClick={() => setActiveTab('upcoming')}
               className={`py-4 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'upcoming'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-black hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-blue-500 text-blue-600 bg-blue-400'
+                  : 'border-transparent hover:text-black text-gray-700 hover:border-blue-300 bg-white border-black'
               } capitalize`}
             >
               Mendatang
@@ -288,8 +288,8 @@ const MyBookings = () => {
               onClick={() => setActiveTab('past')}
               className={`py-4 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'past'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-black hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-blue-500 text-blue-600 bg-blue-400'
+                  : 'border-transparent hover:text-black text-gray-700 hover:border-blue-300 bg-white border-black'
               } capitalize`}
             >
               Selesai
@@ -298,8 +298,8 @@ const MyBookings = () => {
               onClick={() => setActiveTab('cancelled')}
               className={`py-4 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'cancelled'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-black hover:text-gray-700 hover:border-gray-300'
+                 ? 'border-blue-500 text-blue-600 bg-blue-400'
+                  : 'border-transparent hover:text-black text-gray-700 hover:border-blue-300 bg-white border-black'
               } capitalize`}
             >
               Dibatalkan

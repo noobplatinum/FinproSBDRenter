@@ -329,16 +329,16 @@ const AdminAddProperty = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">Property Title <span className="text-red-500">*</span></label>
-                <input type="text" id="title" name="title" value={formData.title} onChange={handleInputChange} required className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="e.g., Luxurious Villa with Ocean View" />
+                <input type="text" id="title" name="title" value={formData.title} onChange={handleInputChange} required className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white text-black" placeholder="e.g., Luxurious Villa with Ocean View" />
               </div>
               <div>
                 <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">Location <span className="text-red-500">*</span></label>
-                <input type="text" id="location" name="location" value={formData.location} onChange={handleInputChange} required className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="e.g., Seminyak, Bali" />
+                <input type="text" id="location" name="location" value={formData.location} onChange={handleInputChange} required className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white text-black " placeholder="e.g., Seminyak, Bali" />
               </div>
             </div>
             <div className="mt-4">
               <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-              <textarea id="description" name="description" value={formData.description} onChange={handleInputChange} rows="4" className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Detailed description of the property..."></textarea>
+              <textarea id="description" name="description" value={formData.description} onChange={handleInputChange} rows="4" className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white text-black " placeholder="Detailed description of the property..."></textarea>
             </div>
           </section>
 
@@ -348,11 +348,11 @@ const AdminAddProperty = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div>
                 <label htmlFor="price_per_night" className="block text-sm font-medium text-gray-700 mb-1">Price per Night (IDR) <span className="text-red-500">*</span></label>
-                <input type="number" id="price_per_night" name="price_per_night" value={formData.price_per_night} onChange={handleInputChange} min="0" step="1000" className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="1000000" />
+                <input type="number" id="price_per_night" name="price_per_night" value={formData.price_per_night} onChange={handleInputChange} min="0" step="1000" className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white text-black" placeholder="1000000" />
               </div>
               <div>
                 <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                <select id="category" name="category" value={formData.category} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                <select id="category" name="category" value={formData.category} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-black">
                   <option value="apartment">Apartment</option>
                   <option value="house">House</option>
                   <option value="villa">Villa</option>
@@ -365,7 +365,7 @@ const AdminAddProperty = () => {
               </div>
               <div>
                 <label htmlFor="size" className="block text-sm font-medium text-gray-700 mb-1">Size (sqm)</label>
-                <input type="number" id="size" name="size" value={formData.size} onChange={handleInputChange} min="0" className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="120" />
+                <input type="number" id="size" name="size" value={formData.size} onChange={handleInputChange} min="0" className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white text-black" placeholder="120" />
               </div>
             </div>
 
@@ -380,7 +380,7 @@ const AdminAddProperty = () => {
                   value={formData.max_guests}
                   onChange={handleInputChange}
                   min="1"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white text-black"
                 />
               </div>
               <div>
@@ -392,7 +392,7 @@ const AdminAddProperty = () => {
                   value={formData.bedrooms}
                   onChange={handleInputChange}
                   min="0"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white text-black"
                 />
               </div>
               <div>
@@ -404,7 +404,7 @@ const AdminAddProperty = () => {
                   value={formData.bathrooms}
                   onChange={handleInputChange}
                   min="0"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white text-black"
                 />
               </div>
             </div>
@@ -486,7 +486,7 @@ const AdminAddProperty = () => {
                     <input type="checkbox" checked={newFacility.available} onChange={(e) => handleNewFacilityChange('available', e.target.checked)} className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 mr-2" />
                     Available
                   </label>
-                  <select value={newFacility.condition} onChange={(e) => handleNewFacilityChange('condition', e.target.value)} disabled={!newFacility.available} className={`w-full px-3 py-2 text-sm border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 ${!newFacility.available ? 'bg-gray-100 cursor-not-allowed' : ''}`}>
+                  <select value={newFacility.condition} onChange={(e) => handleNewFacilityChange('condition', e.target.value)} disabled={!newFacility.available} className={`w-full px-3 py-2 text-sm border border-gray-300 bg-white  rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 ${!newFacility.available ? 'bg-gray-100 cursor-not-allowed' : ''}`}>
                     {conditionOptions.map(option => <option key={option} value={option}>{option.charAt(0).toUpperCase() + option.slice(1)}</option>)}
                   </select>
                 </div>
@@ -502,11 +502,11 @@ const AdminAddProperty = () => {
                   <div key={index} className="flex items-center justify-between bg-gray-100 p-3 rounded-md shadow-sm">
                     <span className="text-sm font-medium text-gray-800 flex-1">{facility.name}</span>
                     <div className="flex items-center space-x-3 sm:space-x-4">
-                      <label className="flex items-center text-sm">
+                      <label className="flex items-center text-sm text-black">
                         <input type="checkbox" checked={facility.available} onChange={(e) => handleFacilityChange(index, 'available', e.target.checked)} className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 mr-1.5" />
                         Avail.
                       </label>
-                      <select value={facility.condition} onChange={(e) => handleFacilityChange(index, 'condition', e.target.value)} disabled={!facility.available} className={`px-2 py-1 text-xs border border-gray-300 bg-white rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 ${!facility.available ? 'bg-gray-200 cursor-not-allowed' : ''}`}>
+                      <select value={facility.condition} onChange={(e) => handleFacilityChange(index, 'condition', e.target.value)} disabled={!facility.available} className={`px-2 py-1 text-xs border border-gray-300 bg-white rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 ${!facility.available ? 'bg-gray-200 cursor-not-allowed text-gray-500' : 'text-black'}`}>
                         {conditionOptions.map(option => <option key={option} value={option}>{option.charAt(0).toUpperCase() + option.slice(1)}</option>)}
                       </select>
                       <button type="button" onClick={() => removeFacility(index)} className="text-red-500 hover:text-red-700 p-1">
