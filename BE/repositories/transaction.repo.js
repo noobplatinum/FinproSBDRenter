@@ -15,7 +15,8 @@ const transactionRepository = {
       status = 'pending',
       payment_method = 'points',
       payment_status = 'unpaid',
-      total_amount
+      total_amount,
+      guest_count
     } = transactionData;
 
     const userQuery = await client.query('SELECT points FROM account WHERE id = $1 FOR UPDATE', [user_id]);
@@ -34,9 +35,9 @@ const transactionRepository = {
     const insertTransactionQuery = `
       INSERT INTO transaction (
         user_id, property_id, start_date, end_date, status, 
-        payment_method, payment_status, total_amount
+        payment_method, payment_status, total_amount, guest_count
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING *
     `;
 
@@ -47,8 +48,9 @@ const transactionRepository = {
       end_date,
       status,
       payment_method,
-      'paid', // karena poin dipotong langsung
-      total_amount
+      'paid', 
+      total_amount,
+      guest_count
     ];
 
     const transactionResult = await client.query(insertTransactionQuery, transactionValues);
