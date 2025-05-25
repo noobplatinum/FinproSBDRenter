@@ -35,6 +35,9 @@ app.get('/api/test', async (req, res) => {
 
 app.use(router); 
 
+require('./utils/cron');
+
+
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({

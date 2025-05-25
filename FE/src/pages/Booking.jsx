@@ -12,7 +12,9 @@ const Booking = () => {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useContext(AuthContext);
+  // Ambil juga updateUserData dari context
+  const { user, updateUserData } = useContext(AuthContext);
+
   const [thumbnail, setThumbnail] = useState(null);
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -22,205 +24,158 @@ const Booking = () => {
     location.state?.startDate ? new Date(location.state.startDate) : new Date()
   );
   const [endDate, setEndDate] = useState(
-    location.state?.endDate ? new Date(location.state.endDate) : new Date(new Date().setDate(new Date().getDate() + 1))
+    location.state?.endDate
+      ? new Date(location.state.endDate)
+      : new Date(new Date().setDate(new Date().getDate() + 1))
   );
   const [guests, setGuests] = useState(location.state?.guests || 1);
-  // Removed paymentMethod state - only points are used
   const [isProcessing, setIsProcessing] = useState(false);
+
   useEffect(() => {
     if (!user) {
       toast.error('Anda harus login untuk melakukan pemesanan.');
       navigate('/login');
     }
-  }, [user, navigate]); // Added user and navigate to dependency array
+  }, [user, navigate]);
 
+  // Fetch thumbnail jika property sudah ada
   useEffect(() => {
     const fetchThumbnail = async () => {
-      if (!property || !property.id) return;
-
+      if (!property?.id) return;
       try {
-        // Coba fetch thumbnail dulu
-        const thumbnailResponse = await api.get(`/images/property/${property.id}/thumbnail`);
-
-        if (thumbnailResponse.data.success && thumbnailResponse.data.data) {
-          setThumbnail(thumbnailResponse.data.data.url);
-        } else { // Fallback, get semua image
-          const imagesResponse = await api.get(`/images/property/${property.id}`);
-
-          if (imagesResponse.data.success && imagesResponse.data.data.length > 0) {
-            setThumbnail(imagesResponse.data.data[0].url);
+        const thumbRes = await api.get(`/images/property/${property.id}/thumbnail`);
+        if (thumbRes.data.success && thumbRes.data.data) {
+          setThumbnail(thumbRes.data.data.url);
+        } else {
+          const imgs = await api.get(`/images/property/${property.id}`);
+          if (imgs.data.success && imgs.data.data.length) {
+            setThumbnail(imgs.data.data[0].url);
           }
         }
       } catch (err) {
         console.error('Could not load property thumbnail:', err);
       }
     };
-
     fetchThumbnail();
   }, [property]);
 
-  // Fetch property details
+  // Fetch detail property
   useEffect(() => {
-    if (!user) return; // Don't fetch if user is not logged in
-
-    const fetchPropertyDetails = async () => {
+    if (!user) return;
+    const fetchProperty = async () => {
       try {
-        const response = await api.get(`/properties/${id}`);
-        if (response.data.success) {
-          setProperty(response.data.data);
-
+        const res = await api.get(`/properties/${id}`);
+        if (res.data.success) {
+          setProperty(res.data.data);
+          // Pastikan endDate minimal 1 hari setelah startDate
           setEndDate(prev => {
-            const currentEndDate = new Date(prev);
-            // Ensure end date is at least 1 day after start date
-            const minPossibleEndDate = new Date(startDate);
-            minPossibleEndDate.setDate(startDate.getDate() + 1);
-
-            if (currentEndDate <= startDate) {
-              return minPossibleEndDate;
-            }
-            return currentEndDate;
+            const min = new Date(startDate);
+            min.setDate(min.getDate() + 1);
+            return new Date(prev) <= startDate ? min : prev;
           });
-
         } else {
-          throw new Error('Failed to fetch property details');
+          throw new Error('Gagal memuat properti');
         }
-      } catch (error) {
-        console.error('Error fetching property:', error);
-        setError('Tidak dapat memuat data properti. Pastikan properti tersedia.');
+      } catch (err) {
+        console.error('Error fetching property:', err);
+        setError('Tidak dapat memuat data properti.');
       } finally {
         setLoading(false);
       }
     };
-
-    fetchPropertyDetails();
+    fetchProperty();
   }, [id, user, startDate]);
 
-  // Calculate number of nights
   const calculateNights = () => {
-    // Ensure dates are valid Date objects
     const start = startDate instanceof Date && !isNaN(startDate) ? startDate : new Date();
-    const end = endDate instanceof Date && !isNaN(endDate) ? endDate : new Date(new Date().setDate(new Date().getDate() + 1));
-
-    if (start >= end) return 1; // At least 1 night if dates are same or invalid range
-
-    const diffTime = Math.abs(end.getTime() - start.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
+    const end = endDate instanceof Date && !isNaN(endDate)
+      ? endDate
+      : new Date(new Date().setDate(new Date().getDate() + 1));
+    if (start >= end) return 1;
+    const diffMs = end.getTime() - start.getTime();
+    return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
   };
 
-  // Calculate subtotal
-  const calculateSubtotal = () => {
-    if (!property) return 0;
-    const nights = calculateNights();
-    return property.price_per_night * nights;
+  const calculateSubtotal = () => property
+    ? property.price_per_night * calculateNights()
+    : 0;
+
+  const calculateServiceFee = () => calculateSubtotal() * 0.1;
+  const calculateTotalPoints = () => calculateSubtotal() + calculateServiceFee();
+
+  const formatCurrency = amt => new Intl.NumberFormat('id-ID', {
+    style: 'currency', currency: 'IDR', minimumFractionDigits: 0
+  }).format(amt);
+
+  const formatPoints = amt => typeof amt === 'number'
+    ? new Intl.NumberFormat('id-ID', { minimumFractionDigits: 0 }).format(amt)
+    : '0';
+
+  const formatDate = date => {
+    if (!date || isNaN(date)) return '-';
+    return date.toLocaleDateString('id-ID', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    });
   };
 
-  // Calculate service fee (10% of subtotal)
-  const calculateServiceFee = () => {
-    const subtotal = calculateSubtotal();
-    return subtotal * 0.1; // Assuming 10% service fee
-  };
-
-  // Calculate total points required
-  const calculateTotalPoints = () => {
-    // Total cost is the sum of subtotal and service fee
-    return calculateSubtotal() + calculateServiceFee();
-  };
-
-  // Format currency (for display of price per night)
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
-
-  // Format points (display as number)
-  const formatPoints = (amount) => {
-    if (typeof amount !== 'number') return '0';
-    return new Intl.NumberFormat('id-ID', {
-      minimumFractionDigits: 0
-    }).format(amount);
-  }
-
-
-  // Format date
-  const formatDate = (date) => {
-    if (!date || isNaN(date)) return '-'; // Handle invalid dates
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    return date.toLocaleDateString('id-ID', options);
-  };
-
-  // Handle form submission (Payment with Points)
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
 
-    // --- Validate Form (Check Points) ---
     if (!user) {
       toast.error('Anda harus login untuk melakukan pemesanan.');
-      navigate('/login');
-      return;
+      return navigate('/login');
     }
-
     if (!property) {
-      toast.error('Data properti tidak lengkap.');
-      return;
+      return toast.error('Data properti tidak lengkap.');
     }
 
-    const totalPointsRequired = calculateTotalPoints();
-
-    // Check if user has enough points
-    if (user.points < totalPointsRequired) {
-      toast.error(`Poin Anda (${formatPoints(user.points)} poin) tidak mencukupi. Dibutuhkan ${formatPoints(totalPointsRequired)} poin.`);
-      return;
+    const totalPoints = calculateTotalPoints();
+    if (user.points < totalPoints) {
+      return toast.error(`Poin Anda (${formatPoints(user.points)}) tidak mencukupi. Butuh ${formatPoints(totalPoints)} poin.`);
     }
-
-    // Basic date/guest validation before processing
     if (calculateNights() <= 0 || guests <= 0 || guests > property.max_guests) {
-      toast.error('Periksa kembali tanggal pemesanan dan jumlah tamu.');
-      return;
+      return toast.error('Periksa kembali tanggal pemesanan dan jumlah tamu.');
     }
-
 
     setIsProcessing(true);
-
     try {
-
-      const response = await api.post('/transactions', {
+      const res = await api.post('/transactions', {
         property_id: property.id,
         user_id: user.id,
         start_date: startDate.toISOString().split('T')[0],
         end_date: endDate.toISOString().split('T')[0],
-        guests_count: guests,
-        total_amount: calculateTotalPoints(),
+        guest_count: guests,
+        total_amount: totalPoints,
         payment_method: 'points',
         status: 'confirmed',
         payment_status: 'paid'
-      }, {
       });
 
-      if (response.data.success) {
+      if (res.data.success) {
+        // HITUNG POIN BARU DAN UPDATE CONTEXT + localStorage
+        const newPoints = user.points - totalPoints;
+        updateUserData({ points: newPoints });
+
         toast.success('Pemesanan berhasil! Poin Anda telah terpotong.');
         navigate('/booking-success', {
           state: {
-            transactionId: response.data.data.id,
+            transactionId: res.data.data.id,
             propertyName: property.title,
             checkInDate: startDate,
             checkOutDate: endDate,
-            totalAmount: calculateTotalPoints(),
+            totalAmount: totalPoints,
             nights: calculateNights(),
-            guests: guests,
+            guests,
             paymentMethod: 'Poin'
           }
         });
       } else {
-        throw new Error(response.data.message || 'Failed to process booking');
+        throw new Error(res.data.message || 'Gagal proses booking');
       }
-    } catch (error) {
-      console.error('Booking error:', error);
-      const errorMsg = error.response?.data?.message || error.message || 'Pemesanan gagal, silakan coba lagi.';
-      toast.error(errorMsg);
+    } catch (err) {
+      console.error('Booking error:', err);
+      const msg = err.response?.data?.message || err.message || 'Pemesanan gagal.';
+      toast.error(msg);
     } finally {
       setIsProcessing(false);
     }

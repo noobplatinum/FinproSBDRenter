@@ -53,6 +53,7 @@ CREATE TABLE transaction (
     payment_method TEXT,
     payment_status TEXT CHECK (payment_status IN ('paid', 'unpaid', 'failed')) DEFAULT 'unpaid',
     total_amount NUMERIC(10, 2) NOT NULL,
+    guest_count INTEGER NOT NULL DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
