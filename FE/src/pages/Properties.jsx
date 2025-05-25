@@ -49,12 +49,10 @@ const Properties = () => {
     if (typeof rating === 'number') {
       return rating.toFixed(1);
     }
-    return '0.0'; // Default jika rating tidak valid
+    return '0.0';
   };
 
-  // Fetch properties dari API
   useEffect(() => {
-    // Jika ada ID, ambil detail properti
     if (id) {
       const fetchPropertyDetail = async () => {
         try {
@@ -62,16 +60,13 @@ const Properties = () => {
           const response = await axios.get(`https://finpro-sbd-renter-backend.vercel.app/api/properties/${id}`);
           
           if (response.data.success) {
-            // Pastikan rating_avg adalah angka
             let propertyData = response.data.data;
             if (propertyData.rating_avg && typeof propertyData.rating_avg !== 'number') {
               propertyData.rating_avg = parseFloat(propertyData.rating_avg) || 0;
             }
             
-            // Set properti tunggal
             setProperty(propertyData);
             
-            // Coba mendapatkan thumbnail properti
             try {
               const thumbnailResponse = await axios.get(`https://finpro-sbd-renter-backend.vercel.app/api/images/property/${id}/thumbnail`);
               if (thumbnailResponse.data.success && thumbnailResponse.data.data) {
@@ -95,14 +90,12 @@ const Properties = () => {
       
       fetchPropertyDetail();
     } else {
-      // Jika tidak ada ID, ambil semua properti seperti biasa
       const fetchProperties = async () => {
         try {
           setLoading(true);
           const response = await axios.get('https://finpro-sbd-renter-backend.vercel.app/api/properties');
           
           if (response.data.success) {
-            // Pastikan setiap properti memiliki rating_avg yang valid
             const propertiesWithValidRatings = response.data.data.map(prop => {
               if (prop.rating_avg && typeof prop.rating_avg !== 'number') {
                 return {...prop, rating_avg: parseFloat(prop.rating_avg) || 0};
@@ -112,10 +105,8 @@ const Properties = () => {
 
             setProperties(propertiesWithValidRatings);
             
-            // Fetch thumbnail untuk setiap properti, dengan penanganan error yang lebih baik
             const thumbnailMap = {};
             
-            // Gunakan Promise.allSettled sebagai pengganti Promise.all untuk menangani error lebih baik
             await Promise.allSettled(
               propertiesWithValidRatings.map(async (property) => {
                 try {
@@ -318,7 +309,7 @@ const Properties = () => {
                     <span className="text-gray-600 font-medium">Rating</span>
                     <div className="flex items-center">
                       <FiStar className="text-amber-400 mr-1" />
-                      <span>{formatRating(property.rating_avg)} ({property.rating_count || '0'} ulasan)</span>
+                      <span>{formatRating(property.rating_avg)} ({property.comment || '0'} ulasan)</span>
                     </div>
                   </div>
                 </div>

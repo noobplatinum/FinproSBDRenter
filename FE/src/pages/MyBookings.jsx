@@ -7,6 +7,242 @@ import { AuthContext } from '../context/AuthContext';
 import { format, isPast } from 'date-fns';
 import { id } from 'date-fns/locale';
 
+const StarRating = ({ booking, onRatingUpdate }) => {
+  const { user } = useContext(AuthContext);
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [comment, setComment] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [existingRating, setExistingRating] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+
+  useEffect(() => {
+    // Check if user already rated this property
+    const checkExistingRating = async () => {
+      if (!booking?.property_id || !user?.id) return;
+
+      try {
+        const response = await axios.get(
+          `https://finpro-sbd-renter-backend.vercel.app/api/ratings/user/${user.id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('token')}`
+            }
+          }
+        );
+
+        if (response.data.success) {
+          const userRatings = response.data.data;
+          const propertyRating = userRatings.find(r => r.property_id == booking.property_id);
+          
+          if (propertyRating) {
+            setExistingRating(propertyRating);
+            setRating(propertyRating.rating);
+            setComment(propertyRating.comment || '');
+          }
+        }
+      } catch (error) {
+        console.error('Error checking existing rating:', error);
+      }
+    };
+
+    checkExistingRating();
+  }, [booking, user]);
+
+  const handleStarClick = (starValue) => {
+    if (existingRating) return; // Don't allow changes if already rated
+    setRating(starValue);
+    setShowForm(true);
+  };
+
+  const handleStarHover = (starValue) => {
+    if (existingRating) return;
+    setHoverRating(starValue);
+  };
+
+  const handleSubmitRating = async () => {
+    if (rating === 0) {
+      toast.error('Silakan pilih rating bintang terlebih dahulu');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const ratingData = {
+        user_id: user.id,
+        property_id: booking.property_id,
+        rating: rating,
+        comment: comment.trim()
+      };
+
+      const response = await axios.post(
+        'https://finpro-sbd-renter-backend.vercel.app/api/ratings',
+        ratingData,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+
+      if (response.data.success) {
+        toast.success('Terima kasih! Rating Anda telah dikirim');
+        setExistingRating(response.data.data);
+        setShowForm(false);
+        
+        if (onRatingUpdate) {
+          onRatingUpdate(booking.id);
+        }
+      } else {
+        throw new Error(response.data.message || 'Gagal mengirim rating');
+      }
+    } catch (error) {
+      console.error('Error submitting rating:', error);
+      toast.error(error.response?.data?.message || 'Gagal mengirim rating');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="star-rating-container">
+      {/* Show existing rating */}
+      {existingRating && (
+        <div className="p-3 sm:p-4 bg-green-50 rounded-lg border border-green-200">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+            <h4 className="text-sm font-medium text-green-900">
+              Rating Anda untuk properti ini:
+            </h4>
+            <div className="flex items-center">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <FiStar
+                  key={star}
+                  className={`text-base sm:text-lg ${
+                    star <= existingRating.rating 
+                      ? 'text-yellow-400 fill-current' 
+                      : 'text-gray-300'
+                  }`}
+                />
+              ))}
+              <span className="ml-2 text-sm font-medium text-green-700">
+                ({existingRating.rating}/5)
+              </span>
+            </div>
+          </div>
+          {existingRating.comment && (
+            <p className="text-sm text-green-800 italic mt-2 leading-relaxed">
+              "{existingRating.comment}"
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Show rating form for new ratings */}
+      {!existingRating && (
+        <div className="p-3 sm:p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+          <h4 className="text-sm font-medium text-gray-900 mb-3 leading-relaxed">
+            Bagaimana pengalaman Anda? Berikan rating untuk properti ini:
+          </h4>
+          
+          {/* Star Rating Input - Mobile Optimized */}
+          <div className="mb-4">
+            <div className="flex items-center justify-center sm:justify-start space-x-1 sm:space-x-2 mb-2">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  className="text-xl sm:text-2xl transition-all duration-200 cursor-pointer hover:scale-110 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50 rounded-full p-1 bg-white"
+                  onClick={() => handleStarClick(star)}
+                  onMouseEnter={() => handleStarHover(star)}
+                  onMouseLeave={() => setHoverRating(0)}
+                  aria-label={`Rate ${star} stars`}
+                >
+                  <FiStar 
+                    className={`${
+                      star <= (hoverRating || rating)
+                        ? 'text-yellow-400 fill-current'
+                        : 'text-gray-300'
+                    }`}
+                  />
+                </button>
+              ))}
+            </div>
+            {rating > 0 && (
+              <div className="text-center sm:text-left">
+                <span className="text-sm text-gray-600">
+                  {rating} dari 5 bintang
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Comment form (shows after selecting stars) */}
+          {showForm && (
+            <div className="mt-4 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Ulasan (Opsional)
+                </label>
+                <textarea
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  placeholder="Ceritakan pengalaman Anda menginap di properti ini..."
+                  rows={4}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  maxLength={500}
+                />
+                <div className="flex justify-between items-center mt-1">
+                  <p className="text-xs text-gray-500">
+                    {comment.length}/500 karakter
+                  </p>
+                </div>
+              </div>
+
+              {/* Action buttons - Mobile Optimized */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={handleSubmitRating}
+                  disabled={isSubmitting || rating === 0}
+                  className={`flex items-center justify-center px-4 py-2.5 text-sm font-medium rounded-md transition-colors w-full sm:w-auto ${
+                    isSubmitting || rating === 0
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
+                  }`}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Mengirim...
+                    </>
+                  ) : (
+                    <>
+                      <FiCheck className="mr-1.5" />
+                      Kirim Rating
+                    </>
+                  )}
+                </button>
+                
+                <button
+                  onClick={() => {
+                    setShowForm(false);
+                    setRating(0);
+                    setComment('');
+                    setHoverRating(0);
+                  }}
+                  disabled={isSubmitting}
+                  className="flex items-center justify-center px-4 py-2.5 text-sm font-medium rounded-md border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 w-full sm:w-auto"
+                >
+                  <FiX className="mr-1.5" />
+                  Batal
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const MyBookings = () => {
   const { user } = useContext(AuthContext);
@@ -27,21 +263,20 @@ const MyBookings = () => {
       setLoading(true);
       setError(null);
       try {
-        console.log(`Fetching bookings for user ID: ${user.id}`); // Log User ID
+        console.log(`Fetching bookings for user ID: ${user.id}`);
         const response = await axios.get(`https://finpro-sbd-renter-backend.vercel.app/api/transactions/user/${user.id}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
           }
         });
 
-        console.log('API Response for transactions:', response.data); // Log API response
+        console.log('API Response for transactions:', response.data);
 
         if (response.data.success && Array.isArray(response.data.data)) {
           console.log('Raw bookings from API:', response.data.data); 
           
           const enhancedBookings = await Promise.all(
             response.data.data.map(async (booking) => {
-              // Pastikan booking memiliki property_id
               if (!booking.property_id) {
                 console.warn('Booking missing property_id:', booking);
                 return {
@@ -55,17 +290,40 @@ const MyBookings = () => {
                   }
                 };
               }
+
               try {
+                // Fetch property data
                 const propertyRes = await axios.get(`https://finpro-sbd-renter-backend.vercel.app/api/properties/${booking.property_id}`, {
                   headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                   }
                 });
+
+                // Fetch thumbnail for this property
+                let thumbnailUrl = 'https://via.placeholder.com/300x200?text=No+Image';
+                try {
+                  const thumbnailRes = await axios.get(`https://finpro-sbd-renter-backend.vercel.app/api/images/property/${booking.property_id}/thumbnail`, {
+                    headers: {
+                      Authorization: `Bearer ${localStorage.getItem('token')}`
+                    }
+                  });
+                  
+                  if (thumbnailRes.data.success && thumbnailRes.data.data) {
+                    thumbnailUrl = thumbnailRes.data.data.url;
+                  }
+                } catch (thumbnailError) {
+                  console.warn(`No thumbnail found for property ${booking.property_id}:`, thumbnailError);
+                  // Keep default placeholder
+                }
+
                 const propertyData = propertyRes.data && propertyRes.data.data ? propertyRes.data.data : null;
                 
                 return {
                   ...booking,
-                  property: propertyData || {
+                  property: propertyData ? {
+                    ...propertyData,
+                    thumbnail: thumbnailUrl
+                  } : {
                     title: 'Properti tidak ditemukan',
                     location: 'Lokasi tidak tersedia',
                     thumbnail: 'https://via.placeholder.com/300x200?text=Property+Not+Found',
@@ -88,7 +346,8 @@ const MyBookings = () => {
               }
             })
           );
-          console.log('Enhanced bookings with property data:', enhancedBookings);
+          
+          console.log('Enhanced bookings with property data and thumbnails:', enhancedBookings);
           setBookings(enhancedBookings);
         } else {
           console.warn('Failed to fetch bookings or data format is incorrect:', response.data);
@@ -121,7 +380,7 @@ const MyBookings = () => {
 
   const formatCurrency = (amount) => {
     if (typeof amount !== 'number' && typeof amount !== 'string') return 'Harga tidak valid';
-    const numericAmount = Number(amount); // Coba konversi jika string
+    const numericAmount = Number(amount);
     if (isNaN(numericAmount)) return 'Harga tidak valid';
     
     return new Intl.NumberFormat('id-ID', {
@@ -136,10 +395,10 @@ const MyBookings = () => {
     try {
       const start = new Date(checkIn);
       const end = new Date(checkOut);
-      if (isNaN(start.getTime()) || isNaN(end.getTime())) return 0; // Handle Invalid Date
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) return 0;
       const diffTime = Math.abs(end.getTime() - start.getTime());
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      return diffDays > 0 ? diffDays : (start.toDateString() === end.toDateString() ? 1 : 0); // Jika sama, 1 malam, jika tidak valid 0
+      return diffDays > 0 ? diffDays : (start.toDateString() === end.toDateString() ? 1 : 0);
     } catch (e) {
       console.error("Error calculating duration:", checkIn, checkOut, e);
       return 0;
@@ -208,15 +467,47 @@ const MyBookings = () => {
     }
   };
 
+  // Handle rating update callback
+  const handleRatingUpdate = async (bookingId) => {
+    // Refresh property rating by refetching the booking data
+    try {
+      const booking = bookings.find(b => b.id === bookingId);
+      if (booking?.property_id) {
+        const propertyRes = await axios.get(`https://finpro-sbd-renter-backend.vercel.app/api/properties/${booking.property_id}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+
+        if (propertyRes.data.success) {
+          setBookings(prevBookings => 
+            prevBookings.map(b => 
+              b.id === bookingId 
+                ? { 
+                    ...b, 
+                    property: { 
+                      ...b.property, 
+                      rating_avg: propertyRes.data.data.rating_avg 
+                    } 
+                  } 
+                : b
+            )
+          );
+        }
+      }
+    } catch (error) {
+      console.error('Error refreshing property rating:', error);
+    }
+  };
+
   const filteredBookings = bookings.filter(booking => {
-    // Gunakan 'end_date' dari data booking
     if (!booking || !booking.end_date || !booking.status) {
         console.warn("Skipping booking due to missing end_date or status:", booking);
         return false;
     }
     try {
       const checkoutDateObj = new Date(booking.end_date);
-      if (isNaN(checkoutDateObj.getTime())) { // Cek jika tanggal tidak valid
+      if (isNaN(checkoutDateObj.getTime())) {
         console.warn("Invalid end_date for booking:", booking.id, booking.end_date);
         return false;
       }
@@ -232,11 +523,10 @@ const MyBookings = () => {
       console.error("Error parsing end_date for filtering:", booking.id, booking.end_date, e);
       return false;
     }
-    return false; // Default, jika tidak masuk kategori manapun
+    return false;
   });
   
   console.log(`Active tab: ${activeTab}, Filtered bookings count: ${filteredBookings.length}`, filteredBookings);
-
 
   if (loading) {
     return (
@@ -247,7 +537,7 @@ const MyBookings = () => {
     );
   }
 
-  if (error && bookings.length === 0) { // Hanya tampilkan error utama jika tidak ada booking sama sekali
+  if (error && bookings.length === 0) {
     return (
       <div className="container mx-auto p-4 py-12 text-center">
          <div className="flex justify-center mb-4">
@@ -368,7 +658,7 @@ const MyBookings = () => {
                           </div>
                           <div>
                             <p className="text-xs text-black">Jumlah Tamu</p>
-                            <p className="font-medium text-sm text-black">{booking.capacity || 0} orang</p>
+                            <p className="font-medium text-sm text-black">{booking.guest_count || 0} orang</p>
                           </div>
                         </div>
                         
@@ -382,6 +672,16 @@ const MyBookings = () => {
                           </div>
                         </div>
                       </div>
+
+                      {/* Star Rating Section - Show for completed/past bookings only */}
+                      {(booking.status === 'completed' || (booking.status === 'confirmed' && isPast(new Date(booking.end_date)))) && (
+                        <div className="mb-5">
+                          <StarRating
+                            booking={booking}
+                            onRatingUpdate={handleRatingUpdate}
+                          />
+                        </div>
+                      )}
                     </div>
 
                     <div className="mt-auto pt-4 border-t border-gray-200 flex flex-wrap gap-3 items-center">
@@ -402,19 +702,9 @@ const MyBookings = () => {
                         </button>
                       )}
 
-                      {/* Gunakan 'end_date' untuk logika ulasan */}
-                      {(booking.status === 'completed' || (booking.status === 'confirmed' && isPast(new Date(booking.end_date)))) && (
-                        <button
-                          onClick={() => handleWriteReview(booking)}
-                          className="flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-yellow-700 bg-yellow-100 hover:bg-yellow-200 transition-colors"
-                        >
-                          <FiStar className="mr-1.5" /> Beri Ulasan
-                        </button>
-                      )}
-
                       {booking.status === 'pending' && booking.payment_status === 'pending' && booking.payment_url && (
                         <a
-                          href={booking.payment_url} // Asumsi ada field payment_url dari backend
+                          href={booking.payment_url}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-black bg-blue-600 hover:bg-blue-700 transition-colors"
@@ -424,7 +714,7 @@ const MyBookings = () => {
                       )}
                       {booking.status === 'pending' && booking.payment_status === 'pending' && !booking.payment_url && (
                         <button
-                          onClick={() => toast.error('URL Pembayaran tidak tersedia. Hubungi CS.')} // Placeholder jika tidak ada URL
+                          onClick={() => toast.error('URL Pembayaran tidak tersedia. Hubungi CS.')}
                           className="flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-black bg-blue-600 hover:bg-blue-700 transition-colors"
                         >
                           <FiDollarSign className="mr-1.5" /> Bayar Sekarang

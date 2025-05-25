@@ -136,11 +136,9 @@ const BookingSuccess = () => {
             </div>
           </div>
           
-          {/* Property Info */}
           <div className="mb-8">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Informasi Properti</h2>
             <div className="flex gap-4 items-center">
-              <div className="w-24 h-24 bg-gray-200 rounded-md flex-shrink-0"></div>
               <div>
                 <h3 className="text-lg font-medium text-gray-900">{propertyName}</h3>
                 <p className="text-sm text-gray-600 mb-1">Alamat dan detail lokasi akan dikirim ke email Anda</p>

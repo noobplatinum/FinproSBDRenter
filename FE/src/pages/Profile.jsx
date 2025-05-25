@@ -63,8 +63,8 @@ const Profile = () => {
         setPreviewImage(user.profile_image);
       }
     } else {
-        // Redirect to login if user is null (not logged in)
-        navigate('/login');
+      // Redirect to login if user is null (not logged in)
+      navigate('/login');
     }
   }, [user, navigate]);
 
@@ -124,14 +124,14 @@ const Profile = () => {
     // Age Validation
     const ageNumber = parseInt(age, 10);
     if (isNaN(ageNumber) || ageNumber <= 0 || ageNumber > 150) {
-       toast.error('Usia harus angka positif dan valid (1-150)');
-       return;
+      toast.error('Usia harus angka positif dan valid (1-150)');
+      return;
     }
 
     // Gender Validation
     if (!gender) {
-        toast.error('Jenis Kelamin harus dipilih');
-        return;
+      toast.error('Jenis Kelamin harus dipilih');
+      return;
     }
     // --- End Validation ---
 
@@ -197,11 +197,11 @@ const Profile = () => {
           profile_image: response.data.data.image_url
         });
       } else {
-         throw new Error(response.data.message || 'Failed to upload image');
+        throw new Error(response.data.message || 'Failed to upload image');
       }
     } catch (error) {
       console.error('Error uploading image:', error);
-       toast.error(error.response?.data?.message || error.message || 'Gagal mengunggah foto profil');
+      toast.error(error.response?.data?.message || error.message || 'Gagal mengunggah foto profil');
     } finally {
       setIsUploadingImage(false);
       setProfileImage(null);
@@ -253,7 +253,7 @@ const Profile = () => {
       }
     } catch (error) {
       console.error('Error updating password:', error);
-       toast.error(error.response?.data?.message || error.message || 'Gagal memperbarui password');
+      toast.error(error.response?.data?.message || error.message || 'Gagal memperbarui password');
     } finally {
       setIsSubmittingPassword(false);
     }
@@ -297,72 +297,72 @@ const Profile = () => {
 
   // --- MODIFIED Handle Top Up ---
   const handleTopUp = async () => {
-      if (!user) {
-          toast.error('Anda harus login untuk melakukan top up.');
-          return;
+    if (!user) {
+      toast.error('Anda harus login untuk melakukan top up.');
+      return;
+    }
+
+    const amountString = topUpAmountInput;
+    const amountNumber = parseInt(amountString, 10);
+
+    // Validate the input amount
+    if (!amountString.trim() || isNaN(amountNumber) || amountNumber <= 0) {
+      toast.error('Masukkan jumlah poin top up yang valid (angka positif).');
+      return;
+    }
+
+    // Optional: Set a maximum limit for a single top-up (e.g., 100,000)
+    // if (amountNumber > 100000) {
+    //     toast.error('Jumlah top up maksimal adalah 100.000 poin per transaksi demo.');
+    //     return;
+    // }
+
+
+    setIsToppingUp(true);
+
+    try {
+      // Calculate new total points
+      const currentPoints = user.points || 0; // Use 0 if user.points is null/undefined
+      const newPoints = currentPoints + amountNumber;
+
+      // Call the update endpoint with only the points field
+      const response = await api.put(`/accounts/${user.id}`, {
+        points: newPoints
+      });
+
+      if (response.data.success) {
+        toast.success(`Berhasil top up ${formatPoints(amountNumber)} poin!`); // Use amountNumber for toast
+        // Update the user data in AuthContext with the new points
+        updateUserData(response.data.data); // Assuming backend returns updated user
+        setTopUpAmountInput(''); // Clear the input field
+      } else {
+        throw new Error(response.data.message || 'Failed to top up points');
       }
 
-      const amountString = topUpAmountInput;
-      const amountNumber = parseInt(amountString, 10);
-
-      // Validate the input amount
-      if (!amountString.trim() || isNaN(amountNumber) || amountNumber <= 0) {
-          toast.error('Masukkan jumlah poin top up yang valid (angka positif).');
-          return;
-      }
-
-      // Optional: Set a maximum limit for a single top-up (e.g., 100,000)
-      // if (amountNumber > 100000) {
-      //     toast.error('Jumlah top up maksimal adalah 100.000 poin per transaksi demo.');
-      //     return;
-      // }
-
-
-      setIsToppingUp(true);
-
-      try {
-          // Calculate new total points
-          const currentPoints = user.points || 0; // Use 0 if user.points is null/undefined
-          const newPoints = currentPoints + amountNumber;
-
-          // Call the update endpoint with only the points field
-          const response = await api.put(`/accounts/${user.id}`, {
-              points: newPoints
-          });
-
-          if (response.data.success) {
-              toast.success(`Berhasil top up ${formatPoints(amountNumber)} poin!`); // Use amountNumber for toast
-              // Update the user data in AuthContext with the new points
-              updateUserData(response.data.data); // Assuming backend returns updated user
-              setTopUpAmountInput(''); // Clear the input field
-          } else {
-              throw new Error(response.data.message || 'Failed to top up points');
-          }
-
-      } catch (error) {
-          console.error('Error topping up points:', error);
-           toast.error(error.response?.data?.message || error.message || 'Gagal top up poin, silakan coba lagi');
-      } finally {
-          setIsToppingUp(false);
-      }
+    } catch (error) {
+      console.error('Error topping up points:', error);
+      toast.error(error.response?.data?.message || error.message || 'Gagal top up poin, silakan coba lagi');
+    } finally {
+      setIsToppingUp(false);
+    }
   };
   // --- END MODIFIED Handle Top Up ---
 
-   // Helper to format points for display
-   const formatPoints = (amount) => {
-      if (typeof amount !== 'number' || isNaN(amount)) return '0';
-      return new Intl.NumberFormat('id-ID', {
-           minimumFractionDigits: 0
-      }).format(amount);
-   }
+  // Helper to format points for display
+  const formatPoints = (amount) => {
+    if (typeof amount !== 'number' || isNaN(amount)) return '0';
+    return new Intl.NumberFormat('id-ID', {
+      minimumFractionDigits: 0
+    }).format(amount);
+  }
 
-   // Check if the top-up input is valid for enabling the button
-   const isTopUpAmountValid = parseInt(topUpAmountInput, 10) > 0;
+  // Check if the top-up input is valid for enabling the button
+  const isTopUpAmountValid = parseInt(topUpAmountInput, 10) > 0;
 
 
-   if (!user) {
-       return <div className="min-h-screen flex items-center justify-center text-gray-600">Memuat profil...</div>;
-   }
+  if (!user) {
+    return <div className="min-h-screen flex items-center justify-center text-gray-600">Memuat profil...</div>;
+  }
 
 
   return (
@@ -404,7 +404,7 @@ const Profile = () => {
                         <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
+                        </svg>
                       ) : (
                         <FiSave className="h-4 w-4" />
                       )}
@@ -413,14 +413,14 @@ const Profile = () => {
                 )}
               </div>
               <div>
-                 {/* Display user role */}
-                 <p className="text-sm font-medium text-blue-200 uppercase">{user?.role}</p>
+                {/* Display user role */}
+                <p className="text-sm font-medium text-blue-200 uppercase">{user?.role}</p>
                 <h2 className="text-2xl font-bold">{user?.name}</h2>
                 <p className="text-blue-100">{user?.email}</p>
                 {/* Display user points if available */}
-                 {user?.points !== undefined && (
-                    <p className="text-yellow-300 text-lg font-bold mt-2">Poin: {formatPoints(user.points)}</p>
-                 )}
+                {user?.points !== undefined && (
+                  <p className="text-yellow-300 text-lg font-bold mt-2">Poin: {formatPoints(user.points)}</p>
+                )}
                 <p className="text-blue-100 mt-1">Bergabung sejak {new Date(user?.created_at || Date.now()).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
               </div>
             </div>
@@ -451,9 +451,9 @@ const Profile = () => {
               {isEditingProfile ? (
                 <form onSubmit={handleUpdateProfile} className="space-y-4">
                   {/* Name Input */}
-                  <div className={`relative transition-all duration-300 ${ activeField === 'name' ? 'transform -translate-y-1' : '' }`}>
+                  <div className={`relative transition-all duration-300 ${activeField === 'name' ? 'transform -translate-y-1' : ''}`}>
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <FiUser className={`h-5 w-5 transition-colors ${ activeField === 'name' ? 'text-blue-600' : 'text-gray-400' }`} />
+                      <FiUser className={`h-5 w-5 transition-colors ${activeField === 'name' ? 'text-blue-600' : 'text-gray-400'}`} />
                     </div>
                     <input
                       type="text" id="name" name="name" required
@@ -464,9 +464,9 @@ const Profile = () => {
                   </div>
 
                   {/* Email Input */}
-                   <div className={`relative transition-all duration-300 ${ activeField === 'email' ? 'transform -translate-y-1' : '' }`}>
+                  <div className={`relative transition-all duration-300 ${activeField === 'email' ? 'transform -translate-y-1' : ''}`}>
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <FiMail className={`h-5 w-5 transition-colors ${ activeField === 'email' ? 'text-blue-600' : 'text-gray-400' }`} />
+                      <FiMail className={`h-5 w-5 transition-colors ${activeField === 'email' ? 'text-blue-600' : 'text-gray-400'}`} />
                     </div>
                     <input
                       type="email" id="email" name="email" autoComplete="email" required
@@ -477,9 +477,9 @@ const Profile = () => {
                   </div>
 
                   {/* Age Input */}
-                   <div className={`relative transition-all duration-300 ${ activeField === 'age' ? 'transform -translate-y-1' : '' }`}>
+                  <div className={`relative transition-all duration-300 ${activeField === 'age' ? 'transform -translate-y-1' : ''}`}>
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <FiUser className={`h-5 w-5 transition-colors ${ activeField === 'age' ? 'text-blue-600' : 'text-gray-400' }`} />
+                      <FiUser className={`h-5 w-5 transition-colors ${activeField === 'age' ? 'text-blue-600' : 'text-gray-400'}`} />
                     </div>
                     <input
                       type="number" id="age" name="age" required
@@ -490,11 +490,11 @@ const Profile = () => {
                     />
                   </div>
 
-                   {/* Gender Select */}
-                   <div className={`relative transition-all duration-300 ${ activeField === 'gender' ? 'transform -translate-y-1' : '' }`}>
-                     {/* Left Icon */}
+                  {/* Gender Select */}
+                  <div className={`relative transition-all duration-300 ${activeField === 'gender' ? 'transform -translate-y-1' : ''}`}>
+                    {/* Left Icon */}
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <FiUser className={`h-5 w-5 transition-colors ${ activeField === 'gender' ? 'text-blue-600' : 'text-gray-400' }`} />
+                      <FiUser className={`h-5 w-5 transition-colors ${activeField === 'gender' ? 'text-blue-600' : 'text-gray-400'}`} />
                     </div>
                     {/* Select Element */}
                     <select
@@ -516,9 +516,9 @@ const Profile = () => {
                   </div>
 
                   {/* Location Input */}
-                   <div className={`relative transition-all duration-300 ${ activeField === 'location' ? 'transform -translate-y-1' : '' }`}>
+                  <div className={`relative transition-all duration-300 ${activeField === 'location' ? 'transform -translate-y-1' : ''}`}>
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <FiMapPin className={`h-5 w-5 transition-colors ${ activeField === 'location' ? 'text-blue-600' : 'text-gray-400' }`} />
+                      <FiMapPin className={`h-5 w-5 transition-colors ${activeField === 'location' ? 'text-blue-600' : 'text-gray-400'}`} />
                     </div>
                     <input
                       type="text" id="location" name="location" required
@@ -571,7 +571,7 @@ const Profile = () => {
                     </div>
 
                     {/* Display Gender */}
-                     <div>
+                    <div>
                       <h4 className="text-sm text-gray-500 mb-1">Jenis Kelamin</h4>
                       <p className="text-gray-900">{user?.gender || '-'}</p>
                     </div>
@@ -581,11 +581,11 @@ const Profile = () => {
                       <p className="text-gray-900">{user?.location || '-'}</p>
                     </div>
 
-                     {/* Display Role if applicable */}
-                     <div>
-                        <h4 className="text-sm text-gray-500 mb-1">Role</h4>
-                        <p className="text-gray-900">{user?.role || '-'}</p>
-                     </div>
+                    {/* Display Role if applicable */}
+                    <div>
+                      <h4 className="text-sm text-gray-500 mb-1">Role</h4>
+                      <p className="text-gray-900">{user?.role || '-'}</p>
+                    </div>
 
                   </div>
                 </div>
@@ -735,7 +735,7 @@ const Profile = () => {
                 </p>
                 <button
                   onClick={handleDeleteAccount}
-                  className="flex items-center text-red-600 hover:text-red-800 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center text-red-600 hover:text-red-800 font-medium disabled:opacity-50 disabled:cursor-not-allowed bg-gray-100"
                   disabled={isDeleting}
                 >
                   {isDeleting ? (
@@ -764,51 +764,51 @@ const Profile = () => {
                 <p className="text-gray-600 mb-4">
                   Masukkan jumlah poin yang ingin Anda tambahkan.
                 </p>
-                 {/* Input Field and Button for Top Up */}
-                 <div className="flex gap-4 items-start">
-                   <div className={`relative flex-grow transition-all duration-300 ${ activeField === 'topUpAmount' ? 'transform -translate-y-1' : '' }`}>
-                     {/* Left Icon */}
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        {/* Using FiDollarSign or a coin icon */}
-                        <FiDollarSign className={`h-5 w-5 transition-colors ${ activeField === 'topUpAmount' ? 'text-green-600' : 'text-gray-400' }`} />
-                      </div>
-                     <input
-                       type="number"
-                       id="topUpAmount"
-                       name="topUpAmount"
-                       min="1"
-                       className="appearance-none rounded-lg relative block w-full px-3 py-2.5 pl-10 border border-gray-300 placeholder-gray-400 text-gray-900 bg-white/90 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-400 focus:z-10 text-base transition-all duration-300" // Adjusted colors for green theme
-                       placeholder="Masukkan jumlah poin"
-                       value={topUpAmountInput}
-                       onChange={handleTopUpInputChange}
-                       onFocus={() => setActiveField('topUpAmount')}
-                       onBlur={() => setActiveField(null)}
-                       disabled={isToppingUp}
-                     />
-                   </div>
-                   <button
-                     onClick={handleTopUp}
-                     className="flex items-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200" // Adjusted py to match input height
-                     disabled={isToppingUp || !isTopUpAmountValid} // Disable if processing or input is invalid
-                   >
-                     {isToppingUp ? (
-                       <>
-                         <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                         </svg>
-                         Memproses...
-                       </>
-                     ) : (
-                       <>
-                         <FiPlusCircle className="mr-2" /> Top Up
-                       </>
-                     )}
-                   </button>
-                 </div>
-                 <p className="text-xs text-gray-500 mt-2">
-                    (Ini adalah fitur demo top up gratis. Dalam aplikasi nyata, ini akan terintegrasi dengan gateway pembayaran.)
-                 </p>
+                {/* Input Field and Button for Top Up */}
+                <div className="flex gap-4 items-start">
+                  <div className={`relative flex-grow transition-all duration-300 ${activeField === 'topUpAmount' ? 'transform -translate-y-1' : ''}`}>
+                    {/* Left Icon */}
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      {/* Using FiDollarSign or a coin icon */}
+                      <FiDollarSign className={`h-5 w-5 transition-colors ${activeField === 'topUpAmount' ? 'text-green-600' : 'text-gray-400'}`} />
+                    </div>
+                    <input
+                      type="number"
+                      id="topUpAmount"
+                      name="topUpAmount"
+                      min="1"
+                      className="appearance-none rounded-lg relative block w-full px-3 py-2.5 pl-10 border border-gray-300 placeholder-gray-400 text-gray-900 bg-white/90 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-400 focus:z-10 text-base transition-all duration-300" // Adjusted colors for green theme
+                      placeholder="Masukkan jumlah poin"
+                      value={topUpAmountInput}
+                      onChange={handleTopUpInputChange}
+                      onFocus={() => setActiveField('topUpAmount')}
+                      onBlur={() => setActiveField(null)}
+                      disabled={isToppingUp}
+                    />
+                  </div>
+                  <button
+                    onClick={handleTopUp}
+                    className="flex items-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200" // Adjusted py to match input height
+                    disabled={isToppingUp || !isTopUpAmountValid} // Disable if processing or input is invalid
+                  >
+                    {isToppingUp ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Memproses...
+                      </>
+                    ) : (
+                      <>
+                        <FiPlusCircle className="mr-2" /> Top Up
+                      </>
+                    )}
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  (Ini adalah fitur demo top up gratis. Dalam aplikasi nyata, ini akan terintegrasi dengan gateway pembayaran.)
+                </p>
               </div>
             )}
           </div>
